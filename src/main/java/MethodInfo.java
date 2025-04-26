@@ -42,4 +42,13 @@ public class MethodInfo {
     public HashMap<String, MJType> getLocalVariables() {
         return localVariables;
     }
+
+    public boolean hasParameter(String name) {
+        for (Tuple param: parameters) {
+            if (param.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
