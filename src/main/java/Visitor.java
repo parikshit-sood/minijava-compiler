@@ -10,6 +10,7 @@ import minijava.syntaxtree.BracketExpression;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.Identifier;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
@@ -216,7 +217,35 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
         return new MJType("boolean");
     }
 
-    // TODO: Identifier visit()
+    @Override
+    public MJType visit(Identifier n, SymbolTable st) {
+        MJType type = null;
+        String id = n.f0.toString();
+
+        if (st.hasClass(id)) {
+            // class instance
+            type = new MJType(id, true);
+            return type;
+        }
+
+        if (currentClass != null) {
+            // field variable
+            type = currentClass.getFields().get(id);
+            if (type != null) {
+                return type;
+            }
+        }
+
+        if (currentMethod != null) {
+            // local variable
+            type = currentMethod.getLocalVariables().get(id);
+            if (type != null) {
+                return type;
+            }
+        }
+
+        throw new TypeException("Identifier " + id + " does not exist in the current scope");
+    }
 
     @Override
     public MJType visit(ThisExpression n, SymbolTable st) {
