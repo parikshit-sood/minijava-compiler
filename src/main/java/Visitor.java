@@ -219,18 +219,17 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
 
     @Override
     public MJType visit(Identifier n, SymbolTable st) {
-        MJType type = null;
         String id = n.f0.toString();
 
         if (st.hasClass(id)) {
             // class instance
-            type = new MJType(id, true);
+            MJType type = new MJType(id, true);
             return type;
         }
 
         if (currentClass != null) {
             // field variable
-            type = currentClass.getFields().get(id);
+            MJType type = currentClass.getFields().get(id);
             if (type != null) {
                 return type;
             }
@@ -238,7 +237,7 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
 
         if (currentMethod != null) {
             // local variable
-            type = currentMethod.getLocalVariables().get(id);
+            MJType type = currentMethod.getLocalVariables().get(id);
             if (type != null) {
                 return type;
             }
