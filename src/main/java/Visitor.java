@@ -2,25 +2,104 @@
 import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
+import minijava.syntaxtree.ArrayAssignmentStatement;
 import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
+import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.BracketExpression;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
+import minijava.syntaxtree.PrintStatement;
+import minijava.syntaxtree.Statement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
+import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.GJDepthFirst;
 
 public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
     private ClassInfo currentClass;
     private MethodInfo currentMethod;
+
+    /**
+     * Statement visitors
+     */
+    @Override
+    public MJType visit(Statement n, SymbolTable st) {
+        n.f0.accept(this, st);
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(AssignmentStatement n, SymbolTable st) {
+        MJType t0 = n.f0.accept(this, st);
+        MJType t2 = n.f2.accept(this, st);
+
+        if (t0 == null || t2 == null || !(t0.getType().equals(t2.getType()) || st.isSubtype(t0, t2))) {
+            throw new TypeException("Type mismatch in assignment statement");
+        } 
+        
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(ArrayAssignmentStatement n, SymbolTable st) {
+        MJType t0 = n.f0.accept(this, st);
+        MJType t2 = n.f2.accept(this, st);
+        MJType t5 = n.f5.accept(this, st);
+
+        if (!(t0.arrType() && t2.intType() && t5.intType())) {
+            throw new TypeException("Type mismatch in array assignment statement");
+        }
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(IfStatement n, SymbolTable st) {
+        MJType t2 = n.f2.accept(this, st);
+
+        if (!(t2.booleanType())) {
+            throw new TypeException("If statement condition must be boolean");
+        }
+
+        n.f4.accept(this, st);
+        n.f6.accept(this, st);
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(WhileStatement n, SymbolTable st) {
+        MJType t2 = n.f2.accept(this, st);
+        
+        if (!(t2.booleanType())) {
+            throw new TypeException("While loop condition must be boolean");
+        }
+
+        n.f4.accept(this, st);
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(PrintStatement n, SymbolTable st) {
+        MJType t2 = n.f2.accept(this, st);
+
+        if (!(t2.intType())) {
+            throw new TypeException("System.out.println can only print integers");
+        }
+
+        return new MJType("void");
+    }
 
     /**
      * Expression visitors
@@ -138,7 +217,7 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
     }
 
     // TODO: Identifier visit()
-    
+
     @Override
     public MJType visit(ThisExpression n, SymbolTable st) {
         return new MJType(currentClass.getName(), true);
