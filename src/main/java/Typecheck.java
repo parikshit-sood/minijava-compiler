@@ -16,9 +16,10 @@ public class Typecheck {
                 TableBuilder tb = new TableBuilder();
                 root.accept(tb, null);
 
+                InheritanceResolver ir = new InheritanceResolver(tb.getClassTable());
+                root.accept(ir, null);
 
                 SymbolTable st = new SymbolTable(tb.getClassTable());
-
                 Visitor v = new Visitor();
                 root.accept(v, st);
 

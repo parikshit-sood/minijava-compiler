@@ -13,7 +13,6 @@ import minijava.syntaxtree.IntegerType;
 import minijava.syntaxtree.MainClass;
 import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.Type;
-import minijava.syntaxtree.TypeDeclaration;
 import minijava.syntaxtree.VarDeclaration;
 import minijava.visitor.GJDepthFirst;
 
@@ -52,13 +51,6 @@ public class TableBuilder extends GJDepthFirst<MJType, ClassInfo> {
     }
 
     @Override
-    public MJType visit(TypeDeclaration n, ClassInfo currClass) {
-        n.f0.accept(this, currClass);
-
-        return new MJType("void");
-    }
-
-    @Override
     public MJType visit(ClassDeclaration n, ClassInfo currClass) {
         String className = n.f1.f0.toString();
         ClassInfo currentClass = new ClassInfo(className);
@@ -83,29 +75,7 @@ public class TableBuilder extends GJDepthFirst<MJType, ClassInfo> {
             throw new TypeException("Class " + className + " declared more than once");
         }
 
-        if (!(classTable.containsKey(parent))) {
-            throw new TypeException("Parent class " + parent + " is undefined");
-        }
-
-        if (!(currentClass.setParent(parent))) {
-            throw new TypeException("Child class " + className + " cannot extend more than one parent");
-        }
-
-        ClassInfo parentClass = classTable.get(parent);
-            // Copy parent methods to child
-            for (HashMap.Entry<String, MethodInfo> entry : parentClass.getMethods().entrySet()) {
-                String methodName = entry.getKey();
-                MethodInfo parentMethod = entry.getValue();
-                currentClass.getMethods().put(methodName, new MethodInfo(parentMethod));
-            }
-
-            // Copy parent fields to child
-            for (HashMap.Entry<String, MJType> entry : parentClass.getFields().entrySet()) {
-                String fieldName = entry.getKey();
-                MJType fieldType = entry.getValue();
-                currentClass.getFields().put(fieldName, fieldType);
-            }
-        
+        currentClass.setParent(parent);
         classTable.put(className, currentClass);
         n.f5.accept(this, currentClass);
         n.f6.accept(this, currentClass);
