@@ -1,5 +1,7 @@
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
@@ -13,12 +15,15 @@ import minijava.syntaxtree.ClassDeclaration;
 import minijava.syntaxtree.ClassExtendsDeclaration;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
+import minijava.syntaxtree.ExpressionList;
+import minijava.syntaxtree.ExpressionRest;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.Goal;
 import minijava.syntaxtree.Identifier;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MainClass;
+import minijava.syntaxtree.MessageSend;
 import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
@@ -34,6 +39,7 @@ import minijava.visitor.GJDepthFirst;
 public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
     private ClassInfo currentClass;
     private MethodInfo currentMethod;
+    Stack<MethodInfo> methodCalls;
 
     /**
      * Class visitors
@@ -317,9 +323,63 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
         return new MJType("int");
     }
 
-    // TODO: MessageSend visit()
-    // TODO: ExpressionList visit()
-    // TODO: ExpressionRest visit()
+    @Override
+    public MJType visit(MessageSend n, SymbolTable st) {
+        MJType classId = n.f0.accept(this, st);
+
+        if (!(classId.classType()) || !(st.hasClass(classId.getType()))) {
+            throw new TypeException("Class " + classId.getType() + " not found");
+        }
+
+        ClassInfo classObj = st.getClass(classId.getType());
+        String methodName = n.f2.f0.toString();
+        
+        if (!(classObj.getMethods().containsKey(methodName))) {
+            throw new TypeException("Method " + methodName + " not defined in class " + classId.getType());
+        }
+
+        MethodInfo methodObj = classObj.getMethods().get(methodName);
+
+        methodCalls.push(methodObj);
+        n.f4.accept(this, st);
+        methodCalls.pop();
+        
+        return methodObj.getReturnType();
+    }
+    
+    @Override
+    public MJType visit(ExpressionList n, SymbolTable st) {
+        MethodInfo topMethod = methodCalls.peek();
+        ArrayList<Tuple> params = topMethod.getParameters();
+
+        if (n != null) {
+            if (params.size() != 1 + n.f1.size()) {
+                throw new TypeException("Parameter count mismatch");
+            }
+
+            for (int i = 0; i < params.size(); i++) {
+                MJType paramType = params.get(i).getType();
+                MJType argType;
+                // first parameter in Expression(), rest in ExpressionRest()
+                if (i == 0) {
+                    argType = n.f0.accept(this, st);
+                } else {
+                    argType = n.f1.elementAt(i - 1).accept(this, st);
+                }
+
+                if (!(paramType.getType().equals(argType.getType()) || st.isSubtype(paramType, argType))) {
+                    throw new TypeException("Type mismatch on method call at argument " + i);
+                }
+            }
+        }
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(ExpressionRest n, SymbolTable st) {
+        return n.f1.accept(this, st);
+    }
 
     @Override
     public MJType visit(PrimaryExpression n, SymbolTable st) {
