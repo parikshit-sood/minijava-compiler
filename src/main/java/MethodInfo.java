@@ -5,12 +5,19 @@ import java.util.HashMap;
 public class MethodInfo {
     private final String name;
     private MJType returnType;
-    private ArrayList<Tuple> parameters;
-    private HashMap<String, MJType> localVariables;
+    private ArrayList<Tuple> parameters = new ArrayList<>();
+    private HashMap<String, MJType> localVariables = new HashMap<>();
 
     public MethodInfo(String name, MJType type) {
         this.name = name;
         this.returnType = type;
+    }
+
+    public MethodInfo(MethodInfo other) {
+        this.name = other.name;
+        this.returnType = other.returnType;
+        this.parameters = new ArrayList<>(other.parameters);
+        this.localVariables = new HashMap<>(other.localVariables);
     }
 
     /**

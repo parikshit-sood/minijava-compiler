@@ -83,12 +83,32 @@ public class TableBuilder extends GJDepthFirst<MJType, ClassInfo> {
             throw new TypeException("Class " + className + " declared more than once");
         }
 
+        if (!(classTable.containsKey(parent))) {
+            throw new TypeException("Parent class " + parent + " is undefined");
+        }
+
         if (!(currentClass.setParent(parent))) {
             throw new TypeException("Child class " + className + " cannot extend more than one parent");
         }
 
-        n.f5.accept(this, currClass);
-        n.f6.accept(this, currClass);
+        ClassInfo parentClass = classTable.get(parent);
+            // Copy parent methods to child
+            for (HashMap.Entry<String, MethodInfo> entry : parentClass.getMethods().entrySet()) {
+                String methodName = entry.getKey();
+                MethodInfo parentMethod = entry.getValue();
+                currentClass.getMethods().put(methodName, new MethodInfo(parentMethod));
+            }
+
+            // Copy parent fields to child
+            for (HashMap.Entry<String, MJType> entry : parentClass.getFields().entrySet()) {
+                String fieldName = entry.getKey();
+                MJType fieldType = entry.getValue();
+                currentClass.getFields().put(fieldName, fieldType);
+            }
+        
+        classTable.put(className, currentClass);
+        n.f5.accept(this, currentClass);
+        n.f6.accept(this, currentClass);
 
         return new MJType("void");
     }
@@ -120,7 +140,7 @@ public class TableBuilder extends GJDepthFirst<MJType, ClassInfo> {
         String methodName = n.f2.f0.toString();
 
         MethodInfo currentMethod = new MethodInfo(methodName, returnType);
-        if (currClass.getMethods().containsKey("methodName")) {
+        if (currClass.getMethods().containsKey(methodName)) {
             throw new TypeException("Method " + methodName + " declared more than once in class " + currClass.getName());
         }
 

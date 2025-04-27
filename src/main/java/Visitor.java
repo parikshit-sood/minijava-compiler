@@ -39,15 +39,15 @@ import minijava.visitor.GJDepthFirst;
 public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
     private ClassInfo currentClass;
     private MethodInfo currentMethod;
-    Stack<MethodInfo> methodCalls;
+    Stack<MethodInfo> methodCalls = new Stack<>();
 
     /**
      * Class visitors
      */
     @Override
     public MJType visit(Goal n, SymbolTable st) {
-        n.f1.accept(this, st);
         n.f0.accept(this, st);
+        n.f1.accept(this, st);
         n.f2.accept(this, st);
 
         return new MJType("void");
@@ -144,7 +144,7 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
             throw new TypeException("Return type of method " + methodName + " not defined");
         }
 
-        for (HashMap.Entry<String, MJType> var : currentMethod.getLocalVariables().entrySet()) {
+        for (HashMap.Entry<String, MJType> var : currMethod.getLocalVariables().entrySet()) {
             MJType varType = var.getValue();
 
             if (varType.classType() && !(st.hasClass(varType.getType()))) {
