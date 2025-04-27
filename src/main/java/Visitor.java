@@ -1,4 +1,6 @@
 
+import java.util.HashMap;
+
 import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
@@ -7,18 +9,22 @@ import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.BracketExpression;
+import minijava.syntaxtree.ClassDeclaration;
+import minijava.syntaxtree.ClassExtendsDeclaration;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.Goal;
 import minijava.syntaxtree.Identifier;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MainClass;
+import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
 import minijava.syntaxtree.PrintStatement;
-import minijava.syntaxtree.Statement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
@@ -30,15 +36,133 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
     private MethodInfo currentMethod;
 
     /**
-     * Statement visitors
+     * Class visitors
      */
     @Override
-    public MJType visit(Statement n, SymbolTable st) {
+    public MJType visit(Goal n, SymbolTable st) {
+        n.f1.accept(this, st);
         n.f0.accept(this, st);
+        n.f2.accept(this, st);
 
         return new MJType("void");
     }
 
+    @Override
+    public MJType visit(MainClass n, SymbolTable st) {
+        String className = n.f1.f0.toString();
+        ClassInfo mainClass = st.getClass(className);
+        MethodInfo mainMethod = mainClass.getMethods().get("main");
+
+        this.currentClass = mainClass;
+        this.currentMethod = mainMethod;
+
+        // Typecheck parameters/local variables
+        for (HashMap.Entry<String, MJType> var : mainMethod.getLocalVariables().entrySet()) {
+            MJType varType = var.getValue();
+
+            if (varType.classType() && !(st.hasClass(varType.getType()))) {
+                throw new TypeException("Invalid local variable " + varType.getType() + " in method " + currentMethod.getName());
+            }
+        }
+
+        // Typecheck statements
+        n.f15.accept(this, st);
+
+        this.currentMethod = null;
+        this.currentClass = null;
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(ClassDeclaration n, SymbolTable st) {
+        String className = n.f1.f0.toString();
+        ClassInfo currClass = st.getClass(className);
+
+        if (currClass == null) {
+            throw new TypeException("Class " + className + " not defined");
+        }
+        
+        for (HashMap.Entry<String, MJType> var : currClass.getFields().entrySet()) {
+            MJType varType = var.getValue();
+            if (varType.classType() && !(st.hasClass(varType.getType()))) {
+                throw new TypeException("Type " + varType.getType() + " is not defined");
+            }
+        }
+
+        this.currentClass = currClass;
+        n.f4.accept(this, st);
+        this.currentClass = null;
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(ClassExtendsDeclaration n, SymbolTable st) {
+        String className = n.f1.f0.toString();
+        ClassInfo currClass = st.getClass(className);
+        String parent = n.f3.f0.toString();
+
+        if (!(st.hasClass(parent))) {
+            throw new TypeException("Parent class " + parent + " not defined");
+        }
+
+        for (HashMap.Entry<String, MJType> var : currClass.getFields().entrySet()) {
+            MJType varType = var.getValue();
+
+            if (varType.classType() && !(st.hasClass(varType.getType()))) {
+                throw new TypeException("Type " + varType.getType() + " is not defined");
+            }
+        }
+
+        this.currentClass = currClass;
+        n.f6.accept(this, st);
+        this.currentClass = null;
+
+        return new MJType("void");
+    }
+
+    @Override
+    public MJType visit(MethodDeclaration n, SymbolTable st) {
+        String methodName = n.f2.f0.toString();
+
+        MethodInfo currMethod = currentClass.getMethods().get(methodName);
+
+        if (currMethod == null) {
+            throw new TypeException("Method " + methodName + " not defined in current scope");
+        }
+
+        MJType returnType = currMethod.getReturnType();
+
+        if (returnType.classType() && !(st.hasClass(returnType.getType()))) {
+            throw new TypeException("Return type of method " + methodName + " not defined");
+        }
+
+        for (HashMap.Entry<String, MJType> var : currentMethod.getLocalVariables().entrySet()) {
+            MJType varType = var.getValue();
+
+            if (varType.classType() && !(st.hasClass(varType.getType()))) {
+                throw new TypeException("Invalid local variable " + var.getKey() + " defined in method " + methodName);
+            }
+        }
+
+        this.currentMethod = currMethod;
+        n.f8.accept(this, st);
+        
+        MJType returnValType = n.f10.accept(this, st);
+
+        if (!(returnType.getType().equals(returnValType.getType()) || st.isSubtype(returnType, returnValType))) {
+            throw new TypeException("Invalid return type for method " + methodName);
+        }
+
+        this.currentMethod = null;
+
+        return new MJType("void");
+    }
+
+    /**
+     * Statement visitors
+     */
     @Override
     public MJType visit(AssignmentStatement n, SymbolTable st) {
         MJType t0 = n.f0.accept(this, st);
