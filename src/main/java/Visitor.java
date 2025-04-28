@@ -448,6 +448,9 @@ public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
 
     @Override
     public MJType visit(AllocationExpression n, SymbolTable st) {
+        if (!(st.hasClass(n.f1.f0.toString()))) {
+            throw new TypeException("Allocation expression expects class name as identified");
+        }
         return n.f1.accept(this, st);
     }
 

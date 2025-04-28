@@ -1,20 +1,52 @@
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import minijava.syntaxtree.ClassExtendsDeclaration;
 import minijava.visitor.GJDepthFirst;
 
 public class InheritanceResolver extends GJDepthFirst<MJType, Void> {
     private final HashMap<String, ClassInfo> classTable;
+    private HashSet<String> visiting;
+    private HashSet<String> visited;
 
     public InheritanceResolver(HashMap<String, ClassInfo> classTable) {
         this.classTable = classTable;
+        this.visiting = new HashSet<>();
+        this.visited = new HashSet<>();
+    }
+
+    private void checkCycle(String className) {
+        if (visiting.contains(className)) {
+            throw new TypeException("Cycling inheritance detected");
+        }
+
+        if (visited.contains(className)) {
+            return;
+        }
+
+        ClassInfo classObj = classTable.get(className);
+        if (classObj == null) {
+            return;
+        }
+
+        visiting.add(className);
+
+        String parent = classObj.getParent();
+        if (parent != null) {
+            checkCycle(parent);
+        }
+        
+        visiting.remove(className);
+        visited.add(className);
     }
 
     @Override
     public MJType visit(ClassExtendsDeclaration n, Void argu) {
         String className = n.f1.f0.toString();
         String parentName = n.f3.f0.toString();
+
+        checkCycle(className);
 
         ClassInfo childClass = classTable.get(className);
         ClassInfo parentClass = classTable.get(parentName);
@@ -37,7 +69,7 @@ public class InheritanceResolver extends GJDepthFirst<MJType, Void> {
             String methodName = entry.getKey();
             MethodInfo parentMethod = entry.getValue();
 
-            if (!(childClass.getMethods().containsKey(methodName))) {
+            if (childClass.getMethods().containsKey(methodName)) {
                 MethodInfo childMethod = childClass.getMethods().get(methodName);
                 validateOverride(childMethod, parentMethod, className);
             } else {

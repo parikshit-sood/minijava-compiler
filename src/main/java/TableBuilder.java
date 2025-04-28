@@ -109,11 +109,11 @@ public class TableBuilder extends GJDepthFirst<MJType, ClassInfo> {
         MJType returnType = n.f1.accept(this, currClass);
         String methodName = n.f2.f0.toString();
 
-        MethodInfo currentMethod = new MethodInfo(methodName, returnType);
         if (currClass.getMethods().containsKey(methodName)) {
             throw new TypeException("Method " + methodName + " declared more than once in class " + currClass.getName());
         }
 
+        MethodInfo currentMethod = new MethodInfo(methodName, returnType);
         currClass.getMethods().put(methodName, currentMethod);
 
         currClass.setVisitingMethod(true);
