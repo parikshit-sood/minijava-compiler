@@ -1,12 +1,14 @@
 import java.util.ArrayList;
 
 import IR.token.Identifier;
+import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.TrueLiteral;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Instruction;
 import sparrow.Move_Id_Integer;
+import sparrow.Multiply;
 import sparrow.Program;
 
 public class SparrowGenerator extends DepthFirstVisitor{
@@ -30,6 +32,17 @@ public class SparrowGenerator extends DepthFirstVisitor{
     /**
      * Expression translations
      */
+    @Override
+    public void visit(AndExpression n) {
+        n.f0.accept(this);
+        Identifier op1 = lastResult;
+        n.f2.accept(this);
+        Identifier op2 = lastResult;
+
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Multiply(lastResult, op1, op2));
+    }
+
     @Override
     public void visit(IntegerLiteral n) {
         int val = Integer.parseInt(n.f0.toString());
