@@ -1,6 +1,7 @@
 
 import java.util.HashMap;
 
+import minijava.syntaxtree.Goal;
 import minijava.visitor.DepthFirstVisitor;
 
 public class SparrowGenerator extends DepthFirstVisitor{
@@ -24,5 +25,12 @@ public class SparrowGenerator extends DepthFirstVisitor{
     // Get next available temp variable
     private String getNewTemp() {
         return "t" + (tempCounter++);
+    }
+
+    // Entry point
+    @Override
+    public void visit(Goal n) {
+        n.f0.accept(this);
+        n.f1.accept(this);
     }
 }
