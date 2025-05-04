@@ -2,6 +2,11 @@
 import minijava.MiniJavaParser;
 import minijava.ParseException;
 import minijava.syntaxtree.Goal;
+import typecheck.InheritanceResolver;
+import typecheck.SymbolTable;
+import typecheck.TableBuilder;
+import typecheck.TypeException;
+import typecheck.TypecheckVisitor;
 
 public class J2S {
     public static void main(String[] args) {
@@ -26,7 +31,7 @@ public class J2S {
             // Generate + output Sparrow code
             SparrowGenerator codegen = new SparrowGenerator(tb.getClassTable());
             root.accept(codegen);
-            System.out.println(codegen.getGeneratedCode());
+            // System.out.println(codegen.getGeneratedCode());
 
         } catch (ParseException e) {
 

@@ -1,3 +1,4 @@
+package typecheck;
 import java.util.HashMap;
 
 public class SymbolTable {

@@ -1,3 +1,4 @@
+package typecheck;
 public class MJType {
     private final String type;
     private boolean isClass;
