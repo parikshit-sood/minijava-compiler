@@ -36,7 +36,7 @@ import minijava.syntaxtree.TrueLiteral;
 import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.GJDepthFirst;
 
-public class Visitor extends GJDepthFirst<MJType, SymbolTable> {
+public class TypecheckVisitor extends GJDepthFirst<MJType, SymbolTable> {
     private ClassInfo currentClass;
     private MethodInfo currentMethod;
     Stack<MethodInfo> methodCalls = new Stack<>();
