@@ -1,20 +1,25 @@
-import java.util.HashMap;
+import java.util.ArrayList;
 
+import IR.token.Identifier;
+import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.TrueLiteral;
 import minijava.visitor.DepthFirstVisitor;
+import sparrow.Instruction;
+import sparrow.Move_Id_Integer;
 import sparrow.Program;
-import typecheck.ClassInfo;
 
 public class SparrowGenerator extends DepthFirstVisitor{
-    private HashMap<String, ClassInfo> classTable;
-    private Program code;
+    private ArrayList<Instruction> currentInstructions;
     private int tempCounter;
-    private String currentClass;
-    private String currentMethod;
+    private Program code;
+    private Identifier lastResult;
 
-    public SparrowGenerator(HashMap<String, ClassInfo> classTable) {
-        this.classTable = classTable;
+    public SparrowGenerator() {
         this.code = new Program();
         this.tempCounter = 0;
+        this.currentInstructions = new ArrayList<>();
+        this.lastResult = null;
     }
 
     // Get next available temp variable
@@ -25,5 +30,23 @@ public class SparrowGenerator extends DepthFirstVisitor{
     /**
      * Expression translations
      */
+    @Override
+    public void visit(IntegerLiteral n) {
+        int val = Integer.parseInt(n.f0.toString());
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(lastResult, val));
+    }
+
+    @Override
+    public void visit(TrueLiteral n) {
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(lastResult, 1));
+    }
+
+    @Override
+    public void visit(FalseLiteral n) {
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(lastResult, 0));
+    }
 
 }

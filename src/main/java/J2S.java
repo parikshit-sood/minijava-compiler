@@ -29,8 +29,8 @@ public class J2S {
             System.out.println("Program type checked successfully");
 
             // Generate + output Sparrow code
-            SparrowGenerator codegen = new SparrowGenerator(tb.getClassTable());
-            root.accept(codegen);
+            // SparrowGenerator codegen = new SparrowGenerator(tb.getClassTable());
+            // root.accept(codegen);
             // System.out.println(codegen.getGeneratedCode());
 
         } catch (ParseException e) {
