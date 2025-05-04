@@ -1,3 +1,4 @@
+package typecheck;
 public class Tuple {
     private final String name;
     private final MJType type;
