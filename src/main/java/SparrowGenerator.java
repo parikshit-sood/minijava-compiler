@@ -16,4 +16,14 @@ public class SparrowGenerator extends DepthFirstVisitor{
         this.code = new Program();
         this.tempCounter = 0;
     }
+
+    // Get next available temp variable
+    private String getNewTemp() {
+        return "t" + (tempCounter++);
+    }
+
+    /**
+     * Expression translations
+     */
+
 }
