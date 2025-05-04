@@ -7,6 +7,7 @@ import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.PlusExpression;
+import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
@@ -80,6 +81,17 @@ public class SparrowGenerator extends DepthFirstVisitor{
 
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Subtract(lastResult, op1, op2));
+    }
+
+    @Override
+    public void visit(TimesExpression n) {
+        n.f0.accept(this);
+        Identifier op1 = lastResult;
+        n.f2.accept(this);
+        Identifier op2 = lastResult;
+
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Multiply(lastResult, op1, op2));
     }
 
     @Override
