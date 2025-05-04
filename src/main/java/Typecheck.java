@@ -20,7 +20,7 @@ public class Typecheck {
                 root.accept(ir, null);
 
                 SymbolTable st = new SymbolTable(tb.getClassTable());
-                Visitor v = new Visitor();
+                TypecheckVisitor v = new TypecheckVisitor();
                 root.accept(v, st);
 
             } catch (ParseException e) {
