@@ -38,7 +38,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
 
     /**
-     * Expression translations
+     * Expressions -> Sparrow instructions
      */
     @Override
     public void visit(AndExpression n) {
