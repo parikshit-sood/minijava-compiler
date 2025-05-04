@@ -5,6 +5,7 @@ import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.TrueLiteral;
 import minijava.visitor.DepthFirstVisitor;
@@ -14,6 +15,7 @@ import sparrow.LessThan;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
 import sparrow.Program;
+import sparrow.Subtract;
 
 public class SparrowGenerator extends DepthFirstVisitor{
     private ArrayList<Instruction> currentInstructions;
@@ -67,6 +69,17 @@ public class SparrowGenerator extends DepthFirstVisitor{
 
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Add(lastResult, op1, op2));
+    }
+
+    @Override
+    public void visit(MinusExpression n) {
+        n.f0.accept(this);
+        Identifier op1 = lastResult;
+        n.f2.accept(this);
+        Identifier op2 = lastResult;
+
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Subtract(lastResult, op1, op2));
     }
 
     @Override
