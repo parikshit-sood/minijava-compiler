@@ -19,7 +19,7 @@ import sparrow.Multiply;
 import sparrow.Program;
 import sparrow.Subtract;
 
-public class SparrowGenerator extends DepthFirstVisitor{
+public class SparrowGenerator extends DepthFirstVisitor {
     private ArrayList<Instruction> currentInstructions;
     private int tempCounter;
     private Program code;
@@ -34,7 +34,7 @@ public class SparrowGenerator extends DepthFirstVisitor{
 
     // Get next available temp variable
     private String getNewTemp() {
-        return "t" + (tempCounter++);
+        return "v" + (tempCounter++);
     }
 
     /**
