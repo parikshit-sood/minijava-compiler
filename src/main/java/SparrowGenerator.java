@@ -7,6 +7,8 @@ public class SparrowGenerator extends DepthFirstVisitor{
     private HashMap<String, ClassInfo> classTable;
     private StringBuilder code;
     private int tempCounter;
+    private String currentClass;
+    private String currentMethod;
 
     public SparrowGenerator(HashMap<String, ClassInfo> classTable) {
         this.classTable = classTable;
@@ -17,5 +19,10 @@ public class SparrowGenerator extends DepthFirstVisitor{
     // Get generated Sparrow code
     public String getGeneratedCode() {
         return code.toString();
+    }
+
+    // Get next available temp variable
+    private String getNewTemp() {
+        return "t" + (tempCounter++);
     }
 }
