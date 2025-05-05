@@ -8,9 +8,11 @@ import IR.token.Identifier;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NodeChoice;
 import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
+import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
@@ -154,6 +156,72 @@ public class SparrowGeneratorTest {
         System.out.println("--------------------------------");
 
         timesExpr.accept(generator);
+
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitMinusExpression() {
+        // Create operands: 5 - 3
+        PrimaryExpression op1 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("5")),
+                0
+            )
+        );
+        PrimaryExpression op2 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("3")),
+                0
+            )
+        );
+        
+        // Create MinusExpression using the two-arg constructor
+        MinusExpression minusExpr = new MinusExpression(op1, op2);
+        
+        System.out.println("\n\nTEST: MinusExpression");
+        System.out.println("--------------------------------");
+
+        minusExpr.accept(generator);
+
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitPlusExpression() {
+        // Create operands: 5 + 3
+        PrimaryExpression op1 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("5")),
+                0
+            )
+        );
+        PrimaryExpression op2 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("3")),
+                0
+            )
+        );
+
+        // Create MinusExpression using the two-arg constructor
+        PlusExpression plusExpr = new PlusExpression(op1, op2);
+
+        System.out.println("\n\nTEST: PlusExpression");
+        System.out.println("--------------------------------");
+
+        plusExpr.accept(generator);
 
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
