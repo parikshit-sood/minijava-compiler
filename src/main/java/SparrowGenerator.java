@@ -48,8 +48,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
         return "v_" + (tempCounter++);
     }
 
+    // Get generated Sparrow program
     public String getGeneratedCode() {
         return code.toString();
+    }
+
+    // Get generated instructions
+    public ArrayList<Instruction> getCurrentInstructions() {
+        return currentInstructions;
+    }
+
+    // Get last result
+    public Identifier getLastResult() {
+        return lastResult;
     }
 
     // Check conflict with reserved register names
@@ -235,7 +246,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     @Override
     public void visit(NotExpression n) {
-        n.f0.accept(this);
+        n.f1.accept(this);
         Identifier op = lastResult;
 
         lastResult = new Identifier(getNewTemp());
