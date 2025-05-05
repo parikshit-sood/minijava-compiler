@@ -45,7 +45,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     // Get next available temp variable
     private String getNewTemp() {
-        return "v_" + (tempCounter++);
+        return "v" + (tempCounter++);
     }
 
     // Get generated Sparrow program
@@ -102,8 +102,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     @Override
     public void visit(IfStatement n) {
-        String elseLabel = "else_" + (tempCounter++);
-        String endLabel = "endif_" + (tempCounter++);
+        String elseLabel = "else" + (tempCounter++);
+        String endLabel = "endif" + (tempCounter++);
 
         n.f2.accept(this);
         Identifier condition = lastResult;
@@ -120,8 +120,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     @Override
     public void visit(WhileStatement n) {
-        String startLabel = "while_" + tempCounter++;
-        String endLabel = "endwhile_" + tempCounter++;
+        String startLabel = "while" + tempCounter++;
+        String endLabel = "endwhile" + tempCounter++;
 
         currentInstructions.add(new LabelInstr(new Label(startLabel)));
         n.f2.accept(this);
