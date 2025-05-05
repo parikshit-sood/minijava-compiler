@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
+import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
@@ -421,6 +422,39 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+    }
+
+    @Test
+    public void testVisitAssignmentStatement() {
+        // Create an identifier (x) and expression (42)
+        minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("x"));
+        Expression expr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42")),
+                        0
+                    )
+                ),
+                8  // PrimaryExpression choice
+            )
+        );
+        
+        // Create assignment statement: x = 42;
+        AssignmentStatement assignStmt = new AssignmentStatement(id, expr);
+        
+        System.out.println("\n\nTEST: AssignmentStatement");
+        System.out.println("--------------------------------");
+        
+        // Visit the assignment statement
+        assignStmt.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        for (Instruction instr : instructions) {
             System.out.println(instr.toString());
         }
     }
