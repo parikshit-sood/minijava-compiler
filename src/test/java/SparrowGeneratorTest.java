@@ -17,9 +17,11 @@ import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
 import minijava.syntaxtree.PrintStatement;
+import minijava.syntaxtree.Statement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
+import minijava.syntaxtree.WhileStatement;
 import sparrow.Instruction;
 
 public class SparrowGeneratorTest {
@@ -325,6 +327,52 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
         
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+    }
+
+    @Test
+    public void testVisitWhileStatement() {
+        // Create condition: while (true)
+        Expression condition = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new TrueLiteral(),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        
+        // Create body: print(42)
+        Expression printExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42")),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        PrintStatement body = new PrintStatement(printExpr);
+        
+        // Create while statement: while (true) print(42)
+        WhileStatement whileStmt = new WhileStatement(condition, new Statement(new NodeChoice(body)));
+        
+        System.out.println("\n\nTEST: WhileStatement");
+        System.out.println("--------------------------------");
+        
+        // Visit the while statement
+        whileStmt.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
