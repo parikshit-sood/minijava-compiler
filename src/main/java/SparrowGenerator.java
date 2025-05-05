@@ -48,6 +48,10 @@ public class SparrowGenerator extends DepthFirstVisitor {
         return "v_" + (tempCounter++);
     }
 
+    public String getGeneratedCode() {
+        return code.toString();
+    }
+
     // Check conflict with reserved register names
     private boolean isReservedRegister(String id) {
         // 'a' registers

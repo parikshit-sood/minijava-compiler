@@ -15,23 +15,23 @@ public class J2S {
             // Ensure valid MiniJava program
             Goal root = new MiniJavaParser(System.in).Goal();
 
-            TableBuilder tb = new TableBuilder();
-            root.accept(tb, null);
+            // TableBuilder tb = new TableBuilder();
+            // root.accept(tb, null);
 
-            InheritanceResolver ir = new InheritanceResolver(tb.getClassTable());
-            root.accept(ir, null);
+            // InheritanceResolver ir = new InheritanceResolver(tb.getClassTable());
+            // root.accept(ir, null);
 
-            // Typecheck valid MiniJava program
-            SymbolTable st = new SymbolTable(tb.getClassTable());
-            TypecheckVisitor v = new TypecheckVisitor();
-            root.accept(v, st);
+            // // Typecheck valid MiniJava program
+            // SymbolTable st = new SymbolTable(tb.getClassTable());
+            // TypecheckVisitor v = new TypecheckVisitor();
+            // root.accept(v, st);
 
-            System.out.println("Program type checked successfully");
+            // System.out.println("Program type checked successfully");
 
             // Generate + output Sparrow code
-            // SparrowGenerator codegen = new SparrowGenerator(tb.getClassTable());
-            // root.accept(codegen);
-            // System.out.println(codegen.getGeneratedCode());
+            SparrowGenerator codegen = new SparrowGenerator();
+            root.accept(codegen);
+            System.out.println(codegen.getGeneratedCode());
 
         } catch (ParseException e) {
 
