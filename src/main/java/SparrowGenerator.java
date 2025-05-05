@@ -11,6 +11,7 @@ import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
+import minijava.syntaxtree.PrintStatement;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
 import minijava.syntaxtree.WhileStatement;
@@ -24,6 +25,7 @@ import sparrow.LessThan;
 import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
+import sparrow.Print;
 import sparrow.Program;
 import sparrow.Subtract;
 
@@ -91,6 +93,14 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f4.accept(this);
         currentInstructions.add(new Goto(new Label(startLabel)));
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
+    }
+
+    @Override
+    public void visit(PrintStatement n) {
+        n.f2.accept(this);
+        Identifier value = lastResult;
+
+        currentInstructions.add(new Print(value));
     }
 
     /**
