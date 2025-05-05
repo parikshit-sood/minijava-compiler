@@ -16,6 +16,7 @@ import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
+import minijava.syntaxtree.PrintStatement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
@@ -292,6 +293,38 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+    }
+
+    @Test
+    public void testVisitPrintStatement() {
+        // Create an expression to print (integer literal 42)
+        Expression expr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42")),
+                        0
+                    )
+                ),
+                8  // PrimaryExpression choice
+            )
+        );
+        
+        // Create PrintStatement using single-arg constructor
+        PrintStatement printStmt = new PrintStatement(expr);
+        
+        System.out.println("\n\nTEST: PrintStatement");
+        System.out.println("--------------------------------");
+        
+        // Visit the print statement
+        printStmt.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+        
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
