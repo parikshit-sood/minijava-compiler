@@ -12,6 +12,7 @@ import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrintStatement;
+import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
 import minijava.syntaxtree.WhileStatement;
@@ -45,6 +46,28 @@ public class SparrowGenerator extends DepthFirstVisitor {
     // Get next available temp variable
     private String getNewTemp() {
         return "v_" + (tempCounter++);
+    }
+
+    // Check conflict with reserved register names
+    private boolean isReservedRegister(String id) {
+        // 'a' registers
+        for (int i = 2; i <= 7; i++)
+            if (id.equals("a" + i))
+                return true;
+
+        // 's' registers
+        for (int i = 1; i <= 11; i++) {
+            if (id.equals("s" + i))
+                return true;
+        }
+
+        // 't' registers
+        for (int i = 0; i <= 5; i++) {
+            if (id.equals("t" + i))
+                return true;
+        }
+
+        return false;
     }
 
     /**
@@ -186,8 +209,21 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Move_Id_Integer(lastResult, 0));
     }
 
-    // TODO: Identifier
-    // TODO: ThisExpression
+    @Override
+    public void visit(minijava.syntaxtree.Identifier n) {
+        String id = n.f0.toString();
+
+        if (isReservedRegister(id)) {
+            // TODO: Error handling
+        }
+
+        lastResult = new Identifier(id);
+    }
+
+    @Override
+    public void visit(ThisExpression n) {
+        lastResult = new Identifier("this");
+    }
     // TODO: ArrayAllocationExpression
     // TODO: AllocationExpression
 
