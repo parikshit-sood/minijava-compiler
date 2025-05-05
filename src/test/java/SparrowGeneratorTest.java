@@ -43,8 +43,7 @@ public class SparrowGeneratorTest {
                 new NodeChoice(
                     new PrimaryExpression(
                         new NodeChoice(
-                            new FalseLiteral(new NodeToken("false")), 
-                            0
+                            new FalseLiteral(new NodeToken("false"))
                         )
                     )
                 )
@@ -143,14 +142,12 @@ public class SparrowGeneratorTest {
         // Create operands: 5 * 3
         PrimaryExpression op1 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("5")),
-                0
+                new IntegerLiteral(new NodeToken("5"))
             )
         );
         PrimaryExpression op2 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("3")),
-                0
+                new IntegerLiteral(new NodeToken("3"))
             )
         );
         
@@ -175,14 +172,12 @@ public class SparrowGeneratorTest {
         // Create operands: 5 - 3
         PrimaryExpression op1 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("5")),
-                0
+                new IntegerLiteral(new NodeToken("5"))
             )
         );
         PrimaryExpression op2 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("3")),
-                0
+                new IntegerLiteral(new NodeToken("3"))
             )
         );
         
@@ -207,14 +202,12 @@ public class SparrowGeneratorTest {
         // Create operands: 5 + 3
         PrimaryExpression op1 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("5")),
-                0
+                new IntegerLiteral(new NodeToken("5"))
             )
         );
         PrimaryExpression op2 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("3")),
-                0
+                new IntegerLiteral(new NodeToken("3"))
             )
         );
 
@@ -239,14 +232,12 @@ public class SparrowGeneratorTest {
         // Create operands: 5 < 3
         PrimaryExpression op1 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("5")),
-                0
+                new IntegerLiteral(new NodeToken("5"))
             )
         );
         PrimaryExpression op2 = new PrimaryExpression(
             new NodeChoice(
-                new IntegerLiteral(new NodeToken("3")),
-                0
+                new IntegerLiteral(new NodeToken("3"))
             )
         );
         
@@ -309,11 +300,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42")),
-                        0
+                        new IntegerLiteral(new NodeToken("42"))
                     )
-                ),
-                8  // PrimaryExpression choice
+                )
             )
         );
         
@@ -341,11 +330,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new TrueLiteral(),
-                        0
+                        new TrueLiteral()
                     )
-                ),
-                8
+                )
             )
         );
         
@@ -354,11 +341,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42")),
-                        0
+                        new IntegerLiteral(new NodeToken("42"))
                     )
-                ),
-                8
+                )
             )
         );
         PrintStatement body = new PrintStatement(printExpr);
@@ -387,11 +372,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new TrueLiteral(),
-                        0
+                        new TrueLiteral()
                     )
-                ),
-                8
+                )
             )
         );
         
@@ -400,11 +383,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42")),
-                        0
+                        new IntegerLiteral(new NodeToken("42"))
                     )
-                ),
-                8
+                )
             )
         );
         PrintStatement body = new PrintStatement(printExpr);
@@ -434,11 +415,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42")),
-                        0
+                        new IntegerLiteral(new NodeToken("42"))
                     )
-                ),
-                8  // PrimaryExpression choice
+                )
             )
         );
         

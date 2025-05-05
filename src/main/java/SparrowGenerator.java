@@ -45,7 +45,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     // Get next available temp variable
     private String getNewTemp() {
-        return "v_" + (tempCounter++);
+        return "v" + (tempCounter++);
     }
 
     // Get generated Sparrow program
@@ -112,8 +112,9 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f4.accept(this);
         currentInstructions.add(new Goto(new Label(endLabel)));
 
+        currentInstructions.add(new LabelInstr(new Label(elseLabel)));
         n.f6.accept(this);
-        currentInstructions.add(new Goto(new Label(elseLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
