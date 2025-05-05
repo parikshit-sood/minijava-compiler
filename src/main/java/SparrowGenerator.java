@@ -102,8 +102,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     @Override
     public void visit(IfStatement n) {
-        String elseLabel = "else" + (tempCounter++);
-        String endLabel = "endif" + (tempCounter++);
+        String elseLabel = "else_" + (tempCounter++);
+        String endLabel = "endif_" + (tempCounter++);
 
         n.f2.accept(this);
         Identifier condition = lastResult;
@@ -112,16 +112,17 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f4.accept(this);
         currentInstructions.add(new Goto(new Label(endLabel)));
 
+        currentInstructions.add(new LabelInstr(new Label(elseLabel)));
         n.f6.accept(this);
-        currentInstructions.add(new Goto(new Label(elseLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
     @Override
     public void visit(WhileStatement n) {
-        String startLabel = "while" + tempCounter++;
-        String endLabel = "endwhile" + tempCounter++;
+        String startLabel = "while_" + tempCounter++;
+        String endLabel = "endwhile_" + tempCounter++;
 
         currentInstructions.add(new LabelInstr(new Label(startLabel)));
         n.f2.accept(this);
