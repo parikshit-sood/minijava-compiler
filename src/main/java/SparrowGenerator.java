@@ -1,19 +1,25 @@
 import java.util.ArrayList;
 
 import IR.token.Identifier;
+import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
+import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
+import sparrow.Goto;
+import sparrow.IfGoto;
 import sparrow.Instruction;
+import sparrow.LabelInstr;
 import sparrow.LessThan;
 import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
@@ -36,7 +42,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     // Get next available temp variable
     private String getNewTemp() {
-        return "v" + (tempCounter++);
+        return "v_" + (tempCounter++);
     }
 
     /**
@@ -50,6 +56,41 @@ public class SparrowGenerator extends DepthFirstVisitor {
         Identifier rhs = lastResult;
 
         currentInstructions.add(new Move_Id_Id(lhs, rhs));
+    }
+
+    // TODO: ArrayAssignmentStatement
+
+    @Override
+    public void visit(IfStatement n) {
+        String elseLabel = "else_" + (tempCounter++);
+        String endLabel = "endif_" + (tempCounter++);
+
+        n.f2.accept(this);
+        Identifier condition = lastResult;
+        currentInstructions.add(new IfGoto(condition, new Label(elseLabel)));
+
+        n.f4.accept(this);
+        currentInstructions.add(new Goto(new Label(endLabel)));
+
+        n.f6.accept(this);
+        currentInstructions.add(new Goto(new Label(elseLabel)));
+
+        currentInstructions.add(new LabelInstr(new Label(endLabel)));
+    }
+
+    @Override
+    public void visit(WhileStatement n) {
+        String startLabel = "while_" + tempCounter++;
+        String endLabel = "endwhile_" + tempCounter++;
+
+        currentInstructions.add(new LabelInstr(new Label(startLabel)));
+        n.f2.accept(this);
+        Identifier condition = lastResult;
+        currentInstructions.add(new IfGoto(condition, new Label(endLabel)));
+
+        n.f4.accept(this);
+        currentInstructions.add(new Goto(new Label(startLabel)));
+        currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
     /**
