@@ -2,6 +2,7 @@ import java.util.ArrayList;
 
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
+import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
@@ -14,6 +15,7 @@ import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
 import sparrow.Instruction;
 import sparrow.LessThan;
+import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
 import sparrow.Program;
@@ -35,6 +37,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
     // Get next available temp variable
     private String getNewTemp() {
         return "v" + (tempCounter++);
+    }
+
+    /**
+     * Statements -> Sparrow instructions
+     */
+    @Override
+    public void visit(AssignmentStatement n) {
+        n.f0.accept(this);
+        Identifier lhs = lastResult;
+        n.f2.accept(this);
+        Identifier rhs = lastResult;
+
+        currentInstructions.add(new Move_Id_Id(lhs, rhs));
     }
 
     /**
@@ -94,6 +109,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Multiply(lastResult, op1, op2));
     }
+    
+    // TODO: ArrayLookup
+    // TODO: ArrayLength
+    // TODO: MessageSend
+    // TODO: ExpressionList
+    // TODO: ExpressionRest
 
     @Override
     public void visit(IntegerLiteral n) {
@@ -113,6 +134,11 @@ public class SparrowGenerator extends DepthFirstVisitor {
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Move_Id_Integer(lastResult, 0));
     }
+
+    // TODO: Identifier
+    // TODO: ThisExpression
+    // TODO: ArrayAllocationExpression
+    // TODO: AllocationExpression
 
     @Override
     public void visit(NotExpression n) {
