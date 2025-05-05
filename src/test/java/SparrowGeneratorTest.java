@@ -1,14 +1,17 @@
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import IR.token.Identifier;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.NodeChoice;
 import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PrimaryExpression;
+import minijava.syntaxtree.ThisExpression;
 import sparrow.Instruction;
 
 public class SparrowGeneratorTest {
@@ -48,5 +51,30 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
+        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitThisExpression() {
+        // Create a ThisExpression using the no-arg constructor
+        ThisExpression thisExpr = new ThisExpression();
+        
+        // Visit the THIS expression
+        thisExpr.accept(generator);
+        
+        // Get lastResult
+        Identifier result = generator.getLastResult();
+
+        System.out.println("\n\nTEST: ThisExpression");
+        System.out.println("--------------------------------");
+        
+        // Verify that lastResult is set to "this"
+        assertEquals("this", result.toString());
+        
+        // Verify no instructions were generated (just sets lastResult)
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+        assertEquals(0, instructions.size());
+
+        System.out.println("\n...Passed");
     }
 }
