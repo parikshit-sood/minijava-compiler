@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
+import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
@@ -58,7 +59,6 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
-        System.out.println("\n...Passed");
     }
 
     @Test
@@ -82,7 +82,6 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
         assertEquals(0, instructions.size());
 
-        System.out.println("\n...Passed");
     }
 
     @Test
@@ -132,7 +131,6 @@ public class SparrowGeneratorTest {
         instructions = generator.getCurrentInstructions();
         assertEquals(0, instructions.size());
 
-        System.out.println("\n...Passed");
     }
 
     @Test
@@ -165,7 +163,6 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
-        System.out.println("\n...Passed");
     }
 
     @Test
@@ -198,7 +195,6 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
-        System.out.println("\n...Passed");
     }
 
     @Test
@@ -231,7 +227,44 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
-        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitCompareExpression() {
+        // Create operands: 5 < 3
+        PrimaryExpression op1 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("5")),
+                0
+            )
+        );
+        PrimaryExpression op2 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("3")),
+                0
+            )
+        );
+        
+        // Create CompareExpression for 5 < 3
+        CompareExpression compareExpr = new CompareExpression(
+            op1,
+            new NodeToken("<"),
+            op2
+        );
+        
+        System.out.println("\n\nTEST: CompareExpression");
+        System.out.println("--------------------------------");
+        
+        // Visit the comparison expression
+        compareExpr.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
     }
 
     @Test
@@ -262,6 +295,5 @@ public class SparrowGeneratorTest {
         for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
-        System.out.println("\n...Passed");
     }
 }
