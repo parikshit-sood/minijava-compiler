@@ -9,6 +9,7 @@ import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NodeChoice;
@@ -369,6 +370,52 @@ public class SparrowGeneratorTest {
         
         // Visit the while statement
         whileStmt.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+    }
+
+    @Test
+    public void testVisitIfStatement() {
+        // Create condition: while (true)
+        Expression condition = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new TrueLiteral(),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        
+        // Create body: print(42)
+        Expression printExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42")),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        PrintStatement body = new PrintStatement(printExpr);
+        
+        // Create while statement: while (true) print(42)
+        IfStatement ifStmt = new IfStatement(condition, new Statement(new NodeChoice(body)), new Statement(new NodeChoice(body)));
+        
+        System.out.println("\n\nTEST: IfStatement");
+        System.out.println("--------------------------------");
+        
+        // Visit the while statement
+        ifStmt.accept(generator);
         
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
