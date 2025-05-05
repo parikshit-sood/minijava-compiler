@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import IR.token.Identifier;
+import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.IntegerLiteral;
@@ -16,6 +17,7 @@ import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrimaryExpression;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
+import minijava.syntaxtree.TrueLiteral;
 import sparrow.Instruction;
 
 public class SparrowGeneratorTest {
@@ -222,6 +224,37 @@ public class SparrowGeneratorTest {
         System.out.println("--------------------------------");
 
         plusExpr.accept(generator);
+
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitAndExpression() {
+        // Create operands: true and false
+        PrimaryExpression op1 = new PrimaryExpression(
+            new NodeChoice(
+                new TrueLiteral()
+            )
+        );
+        PrimaryExpression op2 = new PrimaryExpression(
+            new NodeChoice(
+                new FalseLiteral()
+            )
+        );
+        
+        // Create AndExpression using the two-arg constructor
+        AndExpression andExpr = new AndExpression(op1, op2);
+        
+        System.out.println("\n\nTEST: AndExpression");
+        System.out.println("--------------------------------");
+
+        andExpr.accept(generator);
 
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
