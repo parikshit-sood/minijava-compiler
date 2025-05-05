@@ -214,10 +214,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
         String id = n.f0.toString();
 
         if (isReservedRegister(id)) {
-            // TODO: Error handling
+            // Mangle Identifier if there is a name conflict
+            String mangledName = "var_" + id;
+            lastResult = new Identifier(mangledName);
+        } else {
+            lastResult = new Identifier(id);
         }
-
-        lastResult = new Identifier(id);
     }
 
     @Override
