@@ -7,11 +7,13 @@ import org.junit.Test;
 import IR.token.Identifier;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.IntegerLiteral;
 import minijava.syntaxtree.NodeChoice;
 import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PrimaryExpression;
 import minijava.syntaxtree.ThisExpression;
+import minijava.syntaxtree.TimesExpression;
 import sparrow.Instruction;
 
 public class SparrowGeneratorTest {
@@ -126,6 +128,39 @@ public class SparrowGeneratorTest {
         instructions = generator.getCurrentInstructions();
         assertEquals(0, instructions.size());
 
+        System.out.println("\n...Passed");
+    }
+
+    @Test
+    public void testVisitTimesExpression() {
+        // Create operands: 5 * 3
+        PrimaryExpression op1 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("5")),
+                0
+            )
+        );
+        PrimaryExpression op2 = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("3")),
+                0
+            )
+        );
+        
+        // Create TimesExpression using the two-arg constructor
+        TimesExpression timesExpr = new TimesExpression(op1, op2);
+        
+        System.out.println("\n\nTEST: TimesExpression");
+        System.out.println("--------------------------------");
+
+        timesExpr.accept(generator);
+
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated Sparrow instructions
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
         System.out.println("\n...Passed");
     }
 }
