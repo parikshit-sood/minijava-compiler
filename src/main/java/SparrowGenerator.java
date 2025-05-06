@@ -106,7 +106,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Move_Id_Id(lhs, rhs));
     }
 
-    // TODO: ArrayAssignmentStatement
     @Override
     public void visit(ArrayAssignmentStatement n) {
         Label elseLabel = new Label("else_" + (tempCounter++));
