@@ -433,11 +433,9 @@ public class SparrowGeneratorTest {
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("5")),
-                        0
+                        new IntegerLiteral(new NodeToken("5"))
                     )
-                ),
-                8
+                )
             )
         );
         
@@ -467,8 +465,7 @@ public class SparrowGeneratorTest {
         // Create array reference: arr.length
         PrimaryExpression arrayRef = new PrimaryExpression(
             new NodeChoice(
-                new minijava.syntaxtree.Identifier(new NodeToken("arr")),
-                0
+                new minijava.syntaxtree.Identifier(new NodeToken("arr"))
             )
         );
         
@@ -488,70 +485,34 @@ public class SparrowGeneratorTest {
     }
 
     @Test
-    public void testMultipleArrayOperations() {
-        System.out.println("\n\nTEST: Multiple Array Allocations + ArrayLength");
+    public void testErrorMessage() {
+        // Create array size expression: new int[-3]
+        Expression sizeExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("-3"))
+                    )
+                )
+            )
+        );
+        
+        // Create array allocation expression
+        ArrayAllocationExpression arrayAlloc = new ArrayAllocationExpression(
+            new NodeToken("new"),
+            new NodeToken("int"),
+            new NodeToken("["),
+            sizeExpr,
+            new NodeToken("]")
+        );
+        
+        System.out.println("\n\nTEST: ErrorMessage for ArrayAllocation with negative size");
         System.out.println("--------------------------------");
         
-        // Create first array allocation: new int[5]
-        Expression sizeExpr1 = new Expression(
-            new NodeChoice(
-                new PrimaryExpression(
-                    new NodeChoice(
-                        new IntegerLiteral(new NodeToken("5")),
-                        0
-                    )
-                ),
-                8
-            )
-        );
-        ArrayAllocationExpression arrayAlloc1 = new ArrayAllocationExpression(
-            new NodeToken("new"),
-            new NodeToken("int"),
-            new NodeToken("["),
-            sizeExpr1,
-            new NodeToken("]")
-        );
+        // Visit the array allocation
+        arrayAlloc.accept(generator);
         
-        // Create second array allocation: new int[3]
-        Expression sizeExpr2 = new Expression(
-            new NodeChoice(
-                new PrimaryExpression(
-                    new NodeChoice(
-                        new IntegerLiteral(new NodeToken("3")),
-                        0
-                    )
-                ),
-                8
-            )
-        );
-        ArrayAllocationExpression arrayAlloc2 = new ArrayAllocationExpression(
-            new NodeToken("new"),
-            new NodeToken("int"),
-            new NodeToken("["),
-            sizeExpr2,
-            new NodeToken("]")
-        );
-        
-        // Visit both array allocations
-        arrayAlloc1.accept(generator);
-        Identifier arr1 = generator.getLastResult();
-        
-        arrayAlloc2.accept(generator);
-        Identifier arr2 = generator.getLastResult();
-        
-        // Create and visit length expressions for both arrays
-        ArrayLength len1 = new ArrayLength(
-            new PrimaryExpression(new NodeChoice(new minijava.syntaxtree.Identifier(new NodeToken(arr1.toString())), 0))
-        );
-        
-        ArrayLength len2 = new ArrayLength(
-            new PrimaryExpression(new NodeChoice(new minijava.syntaxtree.Identifier(new NodeToken(arr2.toString())), 0))
-        );
-        
-        len1.accept(generator);
-        len2.accept(generator);
-        
-        // Get all generated instructions
+        // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         print(instructions);

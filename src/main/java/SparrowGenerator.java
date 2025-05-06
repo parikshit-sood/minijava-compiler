@@ -21,6 +21,7 @@ import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
 import sparrow.Alloc;
+import sparrow.ErrorMessage;
 import sparrow.Goto;
 import sparrow.IfGoto;
 import sparrow.Instruction;
@@ -119,7 +120,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         currentInstructions.add(new LabelInstr(new Label(elseLabel)));
         n.f6.accept(this);
-        currentInstructions.add(new Goto(new Label(endLabel)));
 
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
@@ -265,6 +265,21 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Number of elements in array ... n
         Identifier numElements = lastResult;
 
+        // Check if numElements > 0
+        String errMsg = "\"Error: Array allocation with negative size\"";
+
+        String elseLabel = "else_" + (tempCounter++);
+        String endLabel = "endif_" + (tempCounter++);
+
+        Identifier zero = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(zero, 0));
+
+        Identifier isNonNeg = new Identifier(getNewTemp());
+        currentInstructions.add(new LessThan(isNonNeg, zero, numElements));
+
+        currentInstructions.add(new IfGoto(isNonNeg, new Label(elseLabel)));
+        
+        // If numElements > 0
         // Byte size of array ... 4 * n + 4
         Identifier four = new Identifier(getNewTemp());
         currentInstructions.add(new Move_Id_Integer(four, 4));
@@ -279,6 +294,16 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         // Store number of elements
         currentInstructions.add(new Store(lastResult, 0, numElements));
+
+        // Goto endif
+        currentInstructions.add(new Goto(new Label(endLabel)));
+
+        // Else block
+        currentInstructions.add(new LabelInstr(new Label(elseLabel)));
+        currentInstructions.add(new ErrorMessage(errMsg));
+
+        // Endif
+        currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
     // TODO: AllocationExpression
