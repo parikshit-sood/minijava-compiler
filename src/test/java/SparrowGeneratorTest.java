@@ -8,6 +8,7 @@ import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.ArrayLength;
+import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
@@ -516,6 +517,56 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         print(instructions);
+    }
+
+    @Test
+    public void testArrayLookup() {
+        System.out.println("\n\nTEST: ArrayLookup");
+        System.out.println("--------------------------------");
+
+        // Create array reference: arr
+        PrimaryExpression arrayRef = new PrimaryExpression(
+            new NodeChoice(
+                new minijava.syntaxtree.Identifier(new NodeToken("arr"))
+            )
+        );
+
+        // Create valid index: 2
+        PrimaryExpression validIndex = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("2"))
+            )
+        );
+
+        // Create invalid index: -1
+        PrimaryExpression invalidIndex = new PrimaryExpression(
+            new NodeChoice(
+                new IntegerLiteral(new NodeToken("-1"))
+            )
+        );
+
+        // Create ArrayLookup for valid index: arr[2]
+        ArrayLookup validLookup = new ArrayLookup(arrayRef, validIndex);
+
+        // Create ArrayLookup for invalid index: arr[-1]
+        ArrayLookup invalidLookup = new ArrayLookup(arrayRef, invalidIndex);
+
+        // Visit valid lookup
+        validLookup.accept(generator);
+        ArrayList<Instruction> validInstructions = new ArrayList<>(generator.getCurrentInstructions());
+        generator.getCurrentInstructions().clear(); // Clear instructions for next test
+
+        // Visit invalid lookup
+        invalidLookup.accept(generator);
+        ArrayList<Instruction> invalidInstructions = new ArrayList<>(generator.getCurrentInstructions());
+
+        // Print valid instructions
+        System.out.println("Valid ArrayLookup Instructions:");
+        print(validInstructions);
+
+        // Print invalid instructions
+        System.out.println("\nInvalid ArrayLookup Instructions:");
+        print(invalidInstructions);
     }
 
 }

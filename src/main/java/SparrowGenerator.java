@@ -5,6 +5,7 @@ import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.ArrayLength;
+import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
@@ -204,9 +205,70 @@ public class SparrowGenerator extends DepthFirstVisitor {
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Multiply(lastResult, op1, op2));
     }
-    
-    // TODO: ArrayLookup
-    
+
+    @Override
+    public void visit(ArrayLookup n) {
+        // Label elseLabel = new Label("else_" + (tempCounter++));
+        // Label endIf = new Label("endif_" + (tempCounter++));
+        // Label error = new Label("error_" + (tempCounter++));
+        // String errMsg = "\"ArrayIndexOutOfBoundsException\"";
+
+        // // Get array address
+        // n.f0.accept(this);
+        // Identifier arr = lastResult;
+        // Identifier size = new Identifier(getNewTemp());
+        // currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
+        
+        // // Get index
+        // n.f2.accept(this);
+        // Identifier idx = lastResult;
+        
+        // // Check if idx < 0
+        // Identifier zero = new Identifier(getNewTemp());
+        // currentInstructions.add(new Move_Id_Integer(zero, 0));
+        // Identifier isNeg = new Identifier(getNewTemp());
+        // currentInstructions.add(new LessThan(isNeg, idx, zero));
+        
+        // // If index is negative, goto error
+        // currentInstructions.add(new IfGoto(isNeg, error));
+        
+        // // Check if idx >= size
+        // Identifier tooBig = new Identifier(getNewTemp());
+        // currentInstructions.add(new LessThan(tooBig, idx, size));
+        // currentInstructions.add(new IfGoto(tooBig, elseLabel));
+        // currentInstructions.add(new Goto(error));
+
+        // // Error block
+        // currentInstructions.add(new LabelInstr(error));
+        // currentInstructions.add(new ErrorMessage(errMsg));
+        // currentInstructions.add(new Goto(endIf));
+
+        // // Valid index block
+        // currentInstructions.add(new LabelInstr(elseLabel));
+        
+        // // Calculate byte offset: 4 * (idx + 1)
+        // Identifier one = new Identifier(getNewTemp());
+        // currentInstructions.add(new Move_Id_Integer(one, 1));
+        // Identifier adjIdx = new Identifier(getNewTemp());
+        // currentInstructions.add(new Add(adjIdx, idx, one));
+        
+        // Identifier four = new Identifier(getNewTemp());
+        // currentInstructions.add(new Move_Id_Integer(four, 4));
+        // Identifier byteOffset = new Identifier(getNewTemp());
+        // currentInstructions.add(new Multiply(byteOffset, four, adjIdx));
+
+        // // Store the computed offset in memory
+        // Identifier offsetTemp = new Identifier(getNewTemp());
+        // currentInstructions.add(new Move_Id_Id(offsetTemp, byteOffset));
+
+        // // Load value from array using the computed offset
+        // lastResult = new Identifier(getNewTemp());
+        // currentInstructions.add(new Load(lastResult, arr, Integer.parseInt(offsetTemp.toString())));
+
+        // // End of array lookup
+        // currentInstructions.add(new LabelInstr(endIf));
+    }
+
     @Override
     public void visit(ArrayLength n) {
         n.f0.accept(this);
