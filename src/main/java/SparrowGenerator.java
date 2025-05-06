@@ -4,6 +4,7 @@ import IR.token.Identifier;
 import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
+import minijava.syntaxtree.ArrayAssignmentStatement;
 import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
@@ -106,6 +107,65 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
 
     // TODO: ArrayAssignmentStatement
+    @Override
+    public void visit(ArrayAssignmentStatement n) {
+        Label elseLabel = new Label("else_" + (tempCounter++));
+        Label checkUpper = new Label("check_upper");
+        Label endIf = new Label("endif_" + (tempCounter++));
+        Label error = new Label("error_" + (tempCounter++));
+        String errMsg = "\"ArrayIndexOutOfBoundsException\"";
+
+        // Get array address
+        n.f0.accept(this);
+        Identifier arr = lastResult;
+        Identifier size = new Identifier(getNewTemp());
+        currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
+        
+        // Get index
+        n.f2.accept(this);
+        Identifier idx = lastResult;
+        
+        // Check idx < 0. Error if true
+        Identifier zero = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(zero, 0));
+        Identifier tooSmall = new Identifier(getNewTemp());
+        currentInstructions.add(new LessThan(tooSmall, idx, zero));
+        currentInstructions.add(new IfGoto(tooSmall, checkUpper));
+        currentInstructions.add(new Goto(error));
+
+        // Check size - 1 < idx. Error if false
+        currentInstructions.add(new LabelInstr(checkUpper));
+        Identifier tooBig = new Identifier(getNewTemp());
+        Identifier one = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(one, 1));
+        Identifier upperBound = new Identifier(getNewTemp());
+        currentInstructions.add(new Subtract(upperBound, size, one));
+        currentInstructions.add(new LessThan(tooBig, upperBound, idx));
+        currentInstructions.add(new IfGoto(tooBig, elseLabel));
+        currentInstructions.add(new Goto(error));
+
+        // Else block: Okay if -1 < idx < size. Compute offset
+        currentInstructions.add(new LabelInstr(elseLabel));
+        Identifier temp = new Identifier(getNewTemp());
+        currentInstructions.add(new Add(temp, one, idx));
+        Identifier four = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(four, 4));
+        Identifier byteOffset = new Identifier(getNewTemp());
+        currentInstructions.add(new Multiply(byteOffset, four, temp));
+
+        // Store from temp into arr[idx]
+        n.f5.accept(this);
+        Identifier val = lastResult;
+        currentInstructions.add(new Store(byteOffset, 0, val));
+        currentInstructions.add(new Goto(endIf));
+
+        // Error block
+        currentInstructions.add(new LabelInstr(error));
+        currentInstructions.add(new ErrorMessage(errMsg));
+
+        // Endif
+        currentInstructions.add(new LabelInstr(endIf));
+    }
 
     @Override
     public void visit(IfStatement n) {
@@ -256,7 +316,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         lastResult = new Identifier(getNewTemp());
         currentInstructions.add(new Load(lastResult, byteOffset, 0));
         currentInstructions.add(new Goto(endIf));
-        
+
         // Error block
         currentInstructions.add(new LabelInstr(error));
         currentInstructions.add(new ErrorMessage(errMsg));

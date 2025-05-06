@@ -7,6 +7,7 @@ import org.junit.Test;
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
+import minijava.syntaxtree.ArrayAssignmentStatement;
 import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
@@ -520,7 +521,7 @@ public class SparrowGeneratorTest {
     }
 
     @Test
-    public void testArrayLookup() {
+    public void testVisitArrayLookupExpression() {
         System.out.println("\n\nTEST: ArrayLookup");
         System.out.println("--------------------------------");
 
@@ -548,6 +549,51 @@ public class SparrowGeneratorTest {
 
         // Print instructions
         print(validInstructions);
+    }
+
+    @Test
+    public void testVisitArrayAssignmentStatement() {
+        System.out.println("\n\nTEST: ArrayAssignmentStatement");
+        System.out.println("--------------------------------");
+
+        // Create array identifier: arr
+        minijava.syntaxtree.Identifier arrayId = new minijava.syntaxtree.Identifier(new NodeToken("arr"));
+
+        // Create index expression: 2
+        Expression indexExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("2"))
+                    )
+                )
+            )
+        );
+
+        // Create value expression: 42
+        Expression valueExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42"))
+                    )
+                )
+            )
+        );
+
+        // Create array assignment statement: arr[2] = 42;
+        ArrayAssignmentStatement assignStmt = new ArrayAssignmentStatement(
+            arrayId,
+            indexExpr,
+            valueExpr
+        );
+
+        // Visit the array assignment statement
+        assignStmt.accept(generator);
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        // Print generated instructions
+        print(instructions);
     }
 
 }
