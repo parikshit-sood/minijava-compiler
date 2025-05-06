@@ -467,7 +467,8 @@ public class SparrowGeneratorTest {
         // Create array reference: arr.length
         PrimaryExpression arrayRef = new PrimaryExpression(
             new NodeChoice(
-                new minijava.syntaxtree.Identifier(new NodeToken("arr"))
+                // Also testing name mangling in action
+                new minijava.syntaxtree.Identifier(new NodeToken("t3"))
             )
         );
         

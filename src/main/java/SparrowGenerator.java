@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import IR.token.Identifier;
 import IR.token.Label;
@@ -43,12 +44,27 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private int tempCounter;
     private Program code;
     private Identifier lastResult;
+    private HashSet<String> reservedRegisters;
 
     public SparrowGenerator() {
         this.code = new Program();
         this.tempCounter = 0;
         this.currentInstructions = new ArrayList<>();
         this.lastResult = null;
+        this.reservedRegisters = new HashSet<>();
+
+        // Populate reserved registers hashset
+        // 'a' registers
+        for (int i = 2; i <= 7; i++)
+            reservedRegisters.add("a" + i);
+
+        // 's' registers
+        for (int i = 1; i <= 11; i++)
+            reservedRegisters.add("s" + i);
+
+        // 't' registers
+        for (int i = 0; i <= 5; i++)
+            reservedRegisters.add("t" + i);
     }
 
     // Get next available temp variable
@@ -69,28 +85,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
     // Get last result
     public Identifier getLastResult() {
         return lastResult;
-    }
-
-    // Check conflict with reserved register names
-    private boolean isReservedRegister(String id) {
-        // 'a' registers
-        for (int i = 2; i <= 7; i++)
-            if (id.equals("a" + i))
-                return true;
-
-        // 's' registers
-        for (int i = 1; i <= 11; i++) {
-            if (id.equals("s" + i))
-                return true;
-        }
-
-        // 't' registers
-        for (int i = 0; i <= 5; i++) {
-            if (id.equals("t" + i))
-                return true;
-        }
-
-        return false;
     }
 
     /**
@@ -362,7 +356,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(minijava.syntaxtree.Identifier n) {
         String id = n.f0.toString();
 
-        if (isReservedRegister(id)) {
+        if (reservedRegisters.contains(id)) {
             // Mangle Identifier if there is a name conflict
             String mangledName = "var_" + id;
             lastResult = new Identifier(mangledName);
