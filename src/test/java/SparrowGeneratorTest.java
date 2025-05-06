@@ -7,6 +7,7 @@ import org.junit.Test;
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
+import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
@@ -29,6 +30,12 @@ import sparrow.Instruction;
 
 public class SparrowGeneratorTest {
     private SparrowGenerator generator;
+
+    private void print(ArrayList<Instruction> instructions) {
+        for (Instruction instr: instructions) {
+            System.out.println(instr.toString());
+        }
+    }
 
     @Before
     public void setUp() {
@@ -61,9 +68,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
         
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -163,9 +168,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -193,9 +196,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -223,9 +224,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -259,9 +258,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -289,9 +286,7 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         // Print generated Sparrow instructions
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -319,9 +314,7 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
         
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -361,9 +354,7 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -403,9 +394,7 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -434,9 +423,7 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
-        for (Instruction instr : instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
 
     @Test
@@ -472,8 +459,102 @@ public class SparrowGeneratorTest {
         // Get generated instructions
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
-        for (Instruction instr: instructions) {
-            System.out.println(instr.toString());
-        }
+        print(instructions);
     }
+
+    @Test
+    public void testVisitArrayLength() {
+        // Create array reference: arr.length
+        PrimaryExpression arrayRef = new PrimaryExpression(
+            new NodeChoice(
+                new minijava.syntaxtree.Identifier(new NodeToken("arr")),
+                0
+            )
+        );
+        
+        // Create ArrayLength using single-arg constructor
+        ArrayLength arrayLength = new ArrayLength(arrayRef);
+        
+        System.out.println("\n\nTEST: ArrayLength");
+        System.out.println("--------------------------------");
+        
+        // Visit the array length expression
+        arrayLength.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        print(instructions);
+    }
+
+    @Test
+    public void testMultipleArrayOperations() {
+        System.out.println("\n\nTEST: Multiple Array Allocations + ArrayLength");
+        System.out.println("--------------------------------");
+        
+        // Create first array allocation: new int[5]
+        Expression sizeExpr1 = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("5")),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        ArrayAllocationExpression arrayAlloc1 = new ArrayAllocationExpression(
+            new NodeToken("new"),
+            new NodeToken("int"),
+            new NodeToken("["),
+            sizeExpr1,
+            new NodeToken("]")
+        );
+        
+        // Create second array allocation: new int[3]
+        Expression sizeExpr2 = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("3")),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        ArrayAllocationExpression arrayAlloc2 = new ArrayAllocationExpression(
+            new NodeToken("new"),
+            new NodeToken("int"),
+            new NodeToken("["),
+            sizeExpr2,
+            new NodeToken("]")
+        );
+        
+        // Visit both array allocations
+        arrayAlloc1.accept(generator);
+        Identifier arr1 = generator.getLastResult();
+        
+        arrayAlloc2.accept(generator);
+        Identifier arr2 = generator.getLastResult();
+        
+        // Create and visit length expressions for both arrays
+        ArrayLength len1 = new ArrayLength(
+            new PrimaryExpression(new NodeChoice(new minijava.syntaxtree.Identifier(new NodeToken(arr1.toString())), 0))
+        );
+        
+        ArrayLength len2 = new ArrayLength(
+            new PrimaryExpression(new NodeChoice(new minijava.syntaxtree.Identifier(new NodeToken(arr2.toString())), 0))
+        );
+        
+        len1.accept(generator);
+        len2.accept(generator);
+        
+        // Get all generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        print(instructions);
+    }
+
 }

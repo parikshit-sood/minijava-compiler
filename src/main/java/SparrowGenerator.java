@@ -4,6 +4,7 @@ import IR.token.Identifier;
 import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
+import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
@@ -25,11 +26,13 @@ import sparrow.IfGoto;
 import sparrow.Instruction;
 import sparrow.LabelInstr;
 import sparrow.LessThan;
+import sparrow.Load;
 import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
 import sparrow.Print;
 import sparrow.Program;
+import sparrow.Store;
 import sparrow.Subtract;
 
 public class SparrowGenerator extends DepthFirstVisitor {
@@ -204,7 +207,16 @@ public class SparrowGenerator extends DepthFirstVisitor {
     
     // TODO: ArrayLookup
     
-    // TODO: ArrayLength
+    @Override
+    public void visit(ArrayLength n) {
+        n.f0.accept(this);
+
+        Identifier arr = lastResult;
+        
+        // Load array length from heap
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Load(lastResult, arr, 0));
+    }
 
     // TODO: MessageSend
     // TODO: ExpressionList
@@ -247,25 +259,26 @@ public class SparrowGenerator extends DepthFirstVisitor {
         lastResult = new Identifier("this");
     }
 
-    // TODO: ArrayAllocationExpression
     @Override
     public void visit(ArrayAllocationExpression n) {
         n.f3.accept(this);
+        // Number of elements in array ... n
         Identifier numElements = lastResult;
 
+        // Byte size of array ... 4 * n + 4
         Identifier four = new Identifier(getNewTemp());
         currentInstructions.add(new Move_Id_Integer(four, 4));
-
         Identifier product = new Identifier(getNewTemp());
         currentInstructions.add(new Multiply(product, four, numElements));
-
         Identifier sz = new Identifier(getNewTemp());
-
         currentInstructions.add(new Add(sz, product, four));
 
+        // Allocate array with byte size
         lastResult = new Identifier(getNewTemp());
-
         currentInstructions.add(new Alloc(lastResult, sz));
+
+        // Store number of elements
+        currentInstructions.add(new Store(lastResult, 0, numElements));
     }
 
     // TODO: AllocationExpression
