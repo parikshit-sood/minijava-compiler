@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import IR.token.Identifier;
 import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
+import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
@@ -18,6 +19,7 @@ import minijava.syntaxtree.TrueLiteral;
 import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
+import sparrow.Alloc;
 import sparrow.Goto;
 import sparrow.IfGoto;
 import sparrow.Instruction;
@@ -201,7 +203,9 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
     
     // TODO: ArrayLookup
+    
     // TODO: ArrayLength
+
     // TODO: MessageSend
     // TODO: ExpressionList
     // TODO: ExpressionRest
@@ -242,7 +246,28 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(ThisExpression n) {
         lastResult = new Identifier("this");
     }
+
     // TODO: ArrayAllocationExpression
+    @Override
+    public void visit(ArrayAllocationExpression n) {
+        n.f3.accept(this);
+        Identifier numElements = lastResult;
+
+        Identifier four = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(four, 4));
+
+        Identifier product = new Identifier(getNewTemp());
+        currentInstructions.add(new Multiply(product, four, numElements));
+
+        Identifier sz = new Identifier(getNewTemp());
+
+        currentInstructions.add(new Add(sz, product, four));
+
+        lastResult = new Identifier(getNewTemp());
+
+        currentInstructions.add(new Alloc(lastResult, sz));
+    }
+
     // TODO: AllocationExpression
 
     @Override

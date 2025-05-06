@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import IR.token.Identifier;
 import minijava.syntaxtree.AndExpression;
+import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
@@ -434,6 +435,44 @@ public class SparrowGeneratorTest {
         ArrayList<Instruction> instructions = generator.getCurrentInstructions();
 
         for (Instruction instr : instructions) {
+            System.out.println(instr.toString());
+        }
+    }
+
+    @Test
+    public void testVisitArrayAllocationExpression() {
+        // Create array size expression: new int[5]
+        Expression sizeExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("5")),
+                        0
+                    )
+                ),
+                8
+            )
+        );
+        
+        // Create array allocation expression
+        ArrayAllocationExpression arrayAlloc = new ArrayAllocationExpression(
+            new NodeToken("new"),
+            new NodeToken("int"),
+            new NodeToken("["),
+            sizeExpr,
+            new NodeToken("]")
+        );
+        
+        System.out.println("\n\nTEST: ArrayAllocationExpression");
+        System.out.println("--------------------------------");
+        
+        // Visit the array allocation
+        arrayAlloc.accept(generator);
+        
+        // Get generated instructions
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+
+        for (Instruction instr: instructions) {
             System.out.println(instr.toString());
         }
     }
