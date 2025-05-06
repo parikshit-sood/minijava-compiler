@@ -14,10 +14,17 @@ import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.FormalParameter;
+import minijava.syntaxtree.FormalParameterList;
+import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.IntegerType;
+import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NodeChoice;
+import minijava.syntaxtree.NodeListOptional;
+import minijava.syntaxtree.NodeOptional;
 import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
@@ -27,6 +34,7 @@ import minijava.syntaxtree.Statement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
+import minijava.syntaxtree.Type;
 import minijava.syntaxtree.WhileStatement;
 import sparrow.Instruction;
 
@@ -596,5 +604,118 @@ public class SparrowGeneratorTest {
         // Print generated instructions
         print(instructions);
     }
+
+    @Test
+public void testVisitMethodDeclaration() {
+    System.out.println("\n\nTEST: MethodDeclaration");
+    System.out.println("--------------------------------");
+
+    // Test 1: Method with no parameters
+    // public int simpleMethod() { return 42; }
+    
+    // Create method type and name
+    Type methodType = new Type(new NodeChoice(new IntegerType()));
+    minijava.syntaxtree.Identifier methodName = new minijava.syntaxtree.Identifier(new NodeToken("simpleMethod"));
+    
+    // Create return expression (42)
+    Expression returnExpr = new Expression(
+        new NodeChoice(
+            new PrimaryExpression(
+                new NodeChoice(
+                    new IntegerLiteral(new NodeToken("42"))
+                )
+            )
+        )
+    );
+    
+    // Create empty lists for parameters, vars, and statements
+    NodeOptional emptyParams = new NodeOptional();
+    NodeListOptional emptyVarDecls = new NodeListOptional();
+    NodeListOptional emptyStatements = new NodeListOptional();
+    
+    MethodDeclaration simpleMethod = new MethodDeclaration(
+        methodType,      // return type
+        methodName,      // method name
+        emptyParams,     // no parameters
+        emptyVarDecls,   // no variable declarations
+        emptyStatements, // no statements
+        returnExpr       // return 42
+    );
+
+    // Visit simple method
+    generator.getCurrentInstructions().clear();
+    simpleMethod.accept(generator);
+    // System.out.println("\nMethod without parameters:");
+    // print(generator.getCurrentInstructions());
+
+    // Test 2: Method with parameters
+    // public int complexMethod(int a, int b) { return a + b; }
+
+    // Create method type and name
+    methodType = new Type(new NodeChoice(new IntegerType()));
+    methodName = new minijava.syntaxtree.Identifier(new NodeToken("complexMethod"));
+
+    // Create parameter list
+    FormalParameter param1 = new FormalParameter(
+        new Type(new NodeChoice(new IntegerType())),
+        new minijava.syntaxtree.Identifier(new NodeToken("a"))
+    );
+
+    FormalParameter param2 = new FormalParameter(
+        new Type(new NodeChoice(new IntegerType())),
+        new minijava.syntaxtree.Identifier(new NodeToken("b"))
+    );
+
+    NodeListOptional paramRests = new NodeListOptional(
+        new FormalParameterRest(param2)
+    );
+
+    FormalParameterList paramList = new FormalParameterList(param1, paramRests);
+
+    // Create return expression (a + b)
+    Expression param1Expr = new Expression(
+        new NodeChoice(
+            new PrimaryExpression(
+                new NodeChoice(
+                    new minijava.syntaxtree.Identifier(new NodeToken("a"))
+                )
+            )
+        )
+    );
+
+    Expression param2Expr = new Expression(
+        new NodeChoice(
+            new PrimaryExpression(
+                new NodeChoice(
+                    new minijava.syntaxtree.Identifier(new NodeToken("b"))
+                )
+            )
+        )
+    );
+
+    PlusExpression plusExpr = new PlusExpression(
+        new PrimaryExpression(new NodeChoice(param1Expr)),
+        new PrimaryExpression(new NodeChoice(param2Expr))
+    );
+
+    Expression returnExpr2 = new Expression(
+        new NodeChoice(plusExpr)
+    );
+
+    MethodDeclaration complexMethod = new MethodDeclaration(
+        methodType,                    // return type
+        methodName,                   // method name
+        new NodeOptional(paramList),  // parameters
+        emptyVarDecls,               // no variable declarations
+        emptyStatements,             // no statements
+        returnExpr2                  // return a + b
+    );
+
+    // Visit complex method
+    generator.getCurrentInstructions().clear();
+    complexMethod.accept(generator);
+    System.out.println("\nMethod with parameters:");
+    System.out.println(generator.getGeneratedCode());
+}
 
 }

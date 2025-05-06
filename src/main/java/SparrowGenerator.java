@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import IR.token.FunctionName;
 import IR.token.Identifier;
 import IR.token.Label;
 import minijava.syntaxtree.AndExpression;
@@ -11,9 +12,13 @@ import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.FormalParameterList;
+import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
+import minijava.syntaxtree.Node;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrintStatement;
@@ -24,7 +29,9 @@ import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
 import sparrow.Alloc;
+import sparrow.Block;
 import sparrow.ErrorMessage;
+import sparrow.FunctionDecl;
 import sparrow.Goto;
 import sparrow.IfGoto;
 import sparrow.Instruction;
@@ -44,10 +51,11 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private int tempCounter;
     private Program code;
     private Identifier lastResult;
+    private ArrayList<Identifier> params;
     private HashSet<String> reservedRegisters;
 
     public SparrowGenerator() {
-        this.code = new Program();
+        this.code = new Program(new ArrayList<>());
         this.tempCounter = 0;
         this.currentInstructions = new ArrayList<>();
         this.lastResult = null;
@@ -85,6 +93,57 @@ public class SparrowGenerator extends DepthFirstVisitor {
     // Get last result
     public Identifier getLastResult() {
         return lastResult;
+    }
+
+    /**
+     * Methods -> Sparrow instructions
+     */
+    // TODO: MethodDeclaration
+    @Override
+    public void visit(MethodDeclaration n) {
+        ArrayList<Instruction> savedInstructions = currentInstructions;
+        currentInstructions = new ArrayList<>();
+        params = new ArrayList<>();
+        tempCounter = 0;
+
+        // Process function name
+        n.f2.accept(this);
+
+        // Process formal parameters
+        if (n.f4.present()) {
+            n.f4.accept(this);
+        }
+
+        // Process variable declaration
+        for (Node varDecl : n.f7.nodes) {
+            varDecl.accept(this);
+        }
+
+        // Process statements
+        n.f8.accept(this);
+        n.f10.accept(this);
+        Identifier returnId = lastResult;
+
+        // Create block (variable declaration + statements + return)
+        Block block = new Block(currentInstructions, returnId);
+
+        // Create function declaration
+        FunctionDecl methodDecl = new FunctionDecl(new FunctionName(n.f2.f0.toString()), params, block);
+
+        code.funDecls.add(methodDecl);
+        currentInstructions = savedInstructions;
+
+    }
+
+    @Override
+    public void visit(FormalParameterList n) {
+        n.f0.accept(this);
+        params.add(lastResult);
+
+        for (Node paramRest: n.f1.nodes) {
+            ((FormalParameterRest) paramRest).f1.accept(this);
+            params.add(lastResult);
+        }
     }
 
     /**
