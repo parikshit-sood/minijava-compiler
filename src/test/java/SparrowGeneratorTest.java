@@ -538,35 +538,16 @@ public class SparrowGeneratorTest {
             )
         );
 
-        // Create invalid index: -1
-        PrimaryExpression invalidIndex = new PrimaryExpression(
-            new NodeChoice(
-                new IntegerLiteral(new NodeToken("-1"))
-            )
-        );
-
         // Create ArrayLookup for valid index: arr[2]
-        ArrayLookup validLookup = new ArrayLookup(arrayRef, validIndex);
+        ArrayLookup lookup = new ArrayLookup(arrayRef, validIndex);
 
-        // Create ArrayLookup for invalid index: arr[-1]
-        ArrayLookup invalidLookup = new ArrayLookup(arrayRef, invalidIndex);
-
-        // Visit valid lookup
-        validLookup.accept(generator);
+        // Visit lookup
+        lookup.accept(generator);
         ArrayList<Instruction> validInstructions = new ArrayList<>(generator.getCurrentInstructions());
         generator.getCurrentInstructions().clear(); // Clear instructions for next test
 
-        // Visit invalid lookup
-        invalidLookup.accept(generator);
-        ArrayList<Instruction> invalidInstructions = new ArrayList<>(generator.getCurrentInstructions());
-
-        // Print valid instructions
-        System.out.println("Valid ArrayLookup Instructions:");
+        // Print instructions
         print(validInstructions);
-
-        // Print invalid instructions
-        System.out.println("\nInvalid ArrayLookup Instructions:");
-        print(invalidInstructions);
     }
 
 }

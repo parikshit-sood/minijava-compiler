@@ -208,65 +208,61 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
     @Override
     public void visit(ArrayLookup n) {
-        // Label elseLabel = new Label("else_" + (tempCounter++));
-        // Label endIf = new Label("endif_" + (tempCounter++));
-        // Label error = new Label("error_" + (tempCounter++));
-        // String errMsg = "\"ArrayIndexOutOfBoundsException\"";
+        Label elseLabel = new Label("else_" + (tempCounter++));
+        Label checkUpper = new Label("check_upper");
+        Label endIf = new Label("endif_" + (tempCounter++));
+        Label error = new Label("error_" + (tempCounter++));
+        String errMsg = "\"ArrayIndexOutOfBoundsException\"";
 
-        // // Get array address
-        // n.f0.accept(this);
-        // Identifier arr = lastResult;
-        // Identifier size = new Identifier(getNewTemp());
-        // currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
+        // Get array address
+        n.f0.accept(this);
+        Identifier arr = lastResult;
+        Identifier size = new Identifier(getNewTemp());
+        currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
         
-        // // Get index
-        // n.f2.accept(this);
-        // Identifier idx = lastResult;
+        // Get index
+        n.f2.accept(this);
+        Identifier idx = lastResult;
         
-        // // Check if idx < 0
-        // Identifier zero = new Identifier(getNewTemp());
-        // currentInstructions.add(new Move_Id_Integer(zero, 0));
-        // Identifier isNeg = new Identifier(getNewTemp());
-        // currentInstructions.add(new LessThan(isNeg, idx, zero));
-        
-        // // If index is negative, goto error
-        // currentInstructions.add(new IfGoto(isNeg, error));
-        
-        // // Check if idx >= size
-        // Identifier tooBig = new Identifier(getNewTemp());
-        // currentInstructions.add(new LessThan(tooBig, idx, size));
-        // currentInstructions.add(new IfGoto(tooBig, elseLabel));
-        // currentInstructions.add(new Goto(error));
+        // Check idx < 0. Error if true
+        Identifier zero = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(zero, 0));
+        Identifier tooSmall = new Identifier(getNewTemp());
+        currentInstructions.add(new LessThan(tooSmall, idx, zero));
+        currentInstructions.add(new IfGoto(tooSmall, checkUpper));
+        currentInstructions.add(new Goto(error));
 
-        // // Error block
-        // currentInstructions.add(new LabelInstr(error));
-        // currentInstructions.add(new ErrorMessage(errMsg));
-        // currentInstructions.add(new Goto(endIf));
+        // Check size - 1 < idx. Error if false
+        currentInstructions.add(new LabelInstr(checkUpper));
+        Identifier tooBig = new Identifier(getNewTemp());
+        Identifier one = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(one, 1));
+        Identifier upperBound = new Identifier(getNewTemp());
+        currentInstructions.add(new Subtract(upperBound, size, one));
+        currentInstructions.add(new LessThan(tooBig, upperBound, idx));
+        currentInstructions.add(new IfGoto(tooBig, elseLabel));
+        currentInstructions.add(new Goto(error));
 
-        // // Valid index block
-        // currentInstructions.add(new LabelInstr(elseLabel));
+        // Else block: Okay if -1 < idx < size. Compute offset
+        currentInstructions.add(new LabelInstr(elseLabel));
+        Identifier temp = new Identifier(getNewTemp());
+        currentInstructions.add(new Add(temp, one, idx));
+        Identifier four = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(four, 4));
+        Identifier byteOffset = new Identifier(getNewTemp());
+        currentInstructions.add(new Multiply(byteOffset, four, temp));
+
+        // Load arr[idx] into new temp
+        lastResult = new Identifier(getNewTemp());
+        currentInstructions.add(new Load(lastResult, byteOffset, 0));
+        currentInstructions.add(new Goto(endIf));
         
-        // // Calculate byte offset: 4 * (idx + 1)
-        // Identifier one = new Identifier(getNewTemp());
-        // currentInstructions.add(new Move_Id_Integer(one, 1));
-        // Identifier adjIdx = new Identifier(getNewTemp());
-        // currentInstructions.add(new Add(adjIdx, idx, one));
-        
-        // Identifier four = new Identifier(getNewTemp());
-        // currentInstructions.add(new Move_Id_Integer(four, 4));
-        // Identifier byteOffset = new Identifier(getNewTemp());
-        // currentInstructions.add(new Multiply(byteOffset, four, adjIdx));
+        // Error block
+        currentInstructions.add(new LabelInstr(error));
+        currentInstructions.add(new ErrorMessage(errMsg));
 
-        // // Store the computed offset in memory
-        // Identifier offsetTemp = new Identifier(getNewTemp());
-        // currentInstructions.add(new Move_Id_Id(offsetTemp, byteOffset));
-
-        // // Load value from array using the computed offset
-        // lastResult = new Identifier(getNewTemp());
-        // currentInstructions.add(new Load(lastResult, arr, Integer.parseInt(offsetTemp.toString())));
-
-        // // End of array lookup
-        // currentInstructions.add(new LabelInstr(endIf));
+        // Endif
+        currentInstructions.add(new LabelInstr(endIf));
     }
 
     @Override
