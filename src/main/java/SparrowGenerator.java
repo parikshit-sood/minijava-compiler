@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import IR.token.FunctionName;
@@ -10,6 +11,7 @@ import minijava.syntaxtree.ArrayAssignmentStatement;
 import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
+import minijava.syntaxtree.ClassDeclaration;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.FormalParameterList;
@@ -52,13 +54,17 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private Program code;
     private Identifier lastResult;
     private ArrayList<Identifier> params;
-    private HashSet<String> reservedRegisters;
+    private final HashSet<String> reservedRegisters;
+    private final HashMap<String, ClassLayout> classLayouts;
+    private String currentClass;
+    private ClassLayout currentLayout;
 
-    public SparrowGenerator() {
+    public SparrowGenerator(HashMap<String, ClassLayout> layouts) {
         this.code = new Program(new ArrayList<>());
         this.tempCounter = 0;
         this.currentInstructions = new ArrayList<>();
         this.lastResult = null;
+        this.classLayouts = layouts;
         this.reservedRegisters = new HashSet<>();
 
         // Populate reserved registers hashset
@@ -75,9 +81,14 @@ public class SparrowGenerator extends DepthFirstVisitor {
             reservedRegisters.add("t" + i);
     }
 
-    // Get next available temp variable
+    // Helper: Get next available temp variable
     private String getNewTemp() {
         return "v" + (tempCounter++);
+    }
+
+    // Helper: Check if identifier is a class field
+    private boolean isField(Identifier id) {
+        return currentLayout.fieldOffsets.containsKey(id.toString());
     }
 
     // Get generated Sparrow program
@@ -96,9 +107,20 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
 
     /**
+     * Classes -> Sparrow instructions
+     */
+    @Override
+    public void visit(ClassDeclaration n) {
+        this.currentClass = n.f1.f0.toString();
+        this.currentLayout = classLayouts.get(currentClass);
+
+        n.f3.accept(this);
+        n.f4.accept(this);
+    }
+
+    /**
      * Methods -> Sparrow instructions
      */
-    // TODO: MethodDeclaration
     @Override
     public void visit(MethodDeclaration n) {
         ArrayList<Instruction> savedInstructions = currentInstructions;
@@ -156,7 +178,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier rhs = lastResult;
 
-        currentInstructions.add(new Move_Id_Id(lhs, rhs));
+        if (isField(lhs)) {
+            int lhsOffset = currentLayout.fieldOffsets.get(lhs.toString());
+            currentInstructions.add(new Store(new Identifier("this"), lhsOffset, rhs));
+        } else {
+            currentInstructions.add(new Move_Id_Id(lhs, rhs));
+        }
     }
 
     @Override
@@ -415,12 +442,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(minijava.syntaxtree.Identifier n) {
         String id = n.f0.toString();
 
-        if (reservedRegisters.contains(id)) {
-            // Mangle Identifier if there is a name conflict
-            String mangledName = "var_" + id;
-            lastResult = new Identifier(mangledName);
+        if (isField(new Identifier(id))) {
+            int offset = currentLayout.fieldOffsets.get(id);
+            Identifier temp = new Identifier(getNewTemp());
+            currentInstructions.add(new Load(temp, new Identifier("this"), offset));
+            lastResult = temp;
         } else {
-            lastResult = new Identifier(id);
+            if (reservedRegisters.contains(id)) {
+                // Mangle Identifier if there is a name conflict
+                String mangledName = "var_" + id;
+                lastResult = new Identifier(mangledName);
+            } else {
+                lastResult = new Identifier(id);
+            }
         }
     }
 

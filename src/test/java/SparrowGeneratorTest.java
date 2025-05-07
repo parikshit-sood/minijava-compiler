@@ -409,25 +409,45 @@ public class SparrowGeneratorTest {
 
     @Test
     public void testVisitAssignmentStatement() {
-        // Create an identifier (x) and expression (42)
+        // Create an identifier (x) and expression (x + 42)
         minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("x"));
-        Expression expr = new Expression(
+        
+        // Create expression (5)
+        Expression five = new Expression(
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42"))
+                        new IntegerLiteral(new NodeToken("5"))
                     )
                 )
             )
         );
+
+        AssignmentStatement ass1 = new AssignmentStatement(id, five);
+
+        PlusExpression sum = new PlusExpression(
+            new PrimaryExpression(
+                new NodeChoice(id)
+            ),
+            new PrimaryExpression(
+                new NodeChoice(
+                    new IntegerLiteral(new NodeToken("42"))
+                )
+            )
+        );
+
+        Expression expr = new Expression(
+            new NodeChoice(sum)
+        );
         
-        // Create assignment statement: x = 42;
+        // Create assignment statement: x = x + 42;
         AssignmentStatement assignStmt = new AssignmentStatement(id, expr);
         
         System.out.println("\n\nTEST: AssignmentStatement");
         System.out.println("--------------------------------");
         
-        // Visit the assignment statement
+        // Visit the assignment statements
+        ass1.accept(generator);
         assignStmt.accept(generator);
         
         // Get generated instructions

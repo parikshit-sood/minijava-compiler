@@ -2,8 +2,6 @@
 import minijava.MiniJavaParser;
 import minijava.ParseException;
 import minijava.syntaxtree.Goal;
-import typecheck.InheritanceResolver;
-import typecheck.TableBuilder;
 
 public class J2S {
     public static void main(String[] args) {
@@ -11,18 +9,12 @@ public class J2S {
 
             Goal root = new MiniJavaParser(System.in).Goal();
 
-            // Build class table
+            // Build fields table + virtual method table
             TableBuilder tb = new TableBuilder();
-            root.accept(tb, null);
-
-            // Resolve inheritance
-            InheritanceResolver ir = new InheritanceResolver(tb.getClassTable());
-            root.accept(ir, null);
-
-            // TODO: Store methods, arrays onto heap
+            root.accept(tb);
 
             // Generate + output Sparrow code
-            SparrowGenerator codegen = new SparrowGenerator();
+            SparrowGenerator codegen = new SparrowGenerator(tb.getLayouts());
             root.accept(codegen);
             System.out.println(codegen.getGeneratedCode());
 
