@@ -443,7 +443,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Move_Id_Integer(lastResult, 0));
     }
 
-    // TODO: Test for fields table modification
     @Override
     public void visit(minijava.syntaxtree.Identifier n) {
         String id = n.f0.toString();
@@ -495,6 +494,10 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Allocate array with byte size
         lastResult = getNewTemp();
         currentInstructions.add(new Alloc(lastResult, sz));
+        // Error check if alloc failed
+        String errorLabel = "nullCheck_" + tempCounter++;
+        currentInstructions.add(new IfGoto(lastResult, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         // Store number of elements
         currentInstructions.add(new Store(lastResult, 0, numElements));
@@ -505,6 +508,10 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Else block
         currentInstructions.add(new LabelInstr(new Label(elseLabel)));
         currentInstructions.add(new ErrorMessage(errMsg));
+
+        // Null check
+        currentInstructions.add(new LabelInstr(new Label(errorLabel)));
+        currentInstructions.add(new ErrorMessage("\"Null pointer\""));
 
         // Endif
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
@@ -519,14 +526,22 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Allocate space for fields table (vmt pointer + fields)
         Identifier size = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(size, layout.objSize));
-        Identifier objPointer = getNewTemp();
+        Identifier objPointer = new Identifier("ft");
         currentInstructions.add(new Alloc(objPointer, size));
+        // Error check if alloc failed
+        String errorLabel = "nullCheck_" + tempCounter++;
+        String endLabel = "endNull_" + tempCounter++;
+        currentInstructions.add(new IfGoto(objPointer, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         // Allocate virtual method table (vmt)
         Identifier vmtSize = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(vmtSize, layout.vmt.size() * 4));
-        Identifier vmtPointer = getNewTemp();
+        Identifier vmtPointer = new Identifier("vmt");
         currentInstructions.add(new Alloc(vmtPointer, vmtSize));
+        // Error check if alloc failed 
+        currentInstructions.add(new IfGoto(vmtPointer, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         // Initialize VMT entries
         for (String name: layout.vmt) {
@@ -540,19 +555,18 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Store(objPointer, 0, vmtPointer));
 
         // Initialize all fields to 0
-        Identifier zero = getNewTemp();
+        Identifier zero = new Identifier("fInit");
         currentInstructions.add(new Move_Id_Integer(zero, 0));
         for (String fieldName : layout.fields) {
             int offset = layout.fieldOffsets.get(fieldName);
             currentInstructions.add(new Store(objPointer, offset, zero));
         }
 
-        String errorLabel = "nullCheck_" + tempCounter++;
-        String endLabel = "endNull_" + tempCounter++;
-        currentInstructions.add(new IfGoto(objPointer, new Label(errorLabel)));
-        currentInstructions.add(new Goto(new Label(endLabel)));
+        // Null check
         currentInstructions.add(new LabelInstr(new Label(errorLabel)));
-        currentInstructions.add(new ErrorMessage("\"null pointer\""));
+        currentInstructions.add(new ErrorMessage("\"Null pointer\""));
+        
+        // Endif
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
 
         lastResult = objPointer;
