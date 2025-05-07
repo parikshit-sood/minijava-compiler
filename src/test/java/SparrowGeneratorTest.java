@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
 import IR.token.Identifier;
+import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.ArrayAssignmentStatement;
@@ -14,10 +16,17 @@ import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.Expression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.FormalParameter;
+import minijava.syntaxtree.FormalParameterList;
+import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.IntegerType;
+import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.NodeChoice;
+import minijava.syntaxtree.NodeListOptional;
+import minijava.syntaxtree.NodeOptional;
 import minijava.syntaxtree.NodeToken;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
@@ -27,6 +36,7 @@ import minijava.syntaxtree.Statement;
 import minijava.syntaxtree.ThisExpression;
 import minijava.syntaxtree.TimesExpression;
 import minijava.syntaxtree.TrueLiteral;
+import minijava.syntaxtree.Type;
 import minijava.syntaxtree.WhileStatement;
 import sparrow.Instruction;
 
@@ -41,7 +51,22 @@ public class SparrowGeneratorTest {
 
     @Before
     public void setUp() {
-        generator = new SparrowGenerator();
+        HashMap<String, ClassLayout> testLayout = new HashMap<>();
+        ClassLayout a = new ClassLayout();
+        a.className = "A";
+        a.fields.add("x");
+        a.fields.add("y");
+        a.fieldOffsets.put("x", 4);
+        a.fieldOffsets.put("y", 8);
+        a.vmt.add("A_foo");
+        a.vmt.add("A_bar");
+        a.methodOffsets.put("A_foo", 0);
+        a.methodOffsets.put("A_bar", 4);
+        a.objSize = 12;
+        testLayout.put("A", a);
+        generator = new SparrowGenerator(testLayout);
+        generator.currentClass = "A";
+        generator.currentLayout = a;
     }
 
     @Test
@@ -401,25 +426,47 @@ public class SparrowGeneratorTest {
 
     @Test
     public void testVisitAssignmentStatement() {
-        // Create an identifier (x) and expression (42)
-        minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("x"));
-        Expression expr = new Expression(
+        // Create an identifier (t2) and expression (t2 + 42)
+        minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("t2"));
+        minijava.syntaxtree.Identifier idY = new minijava.syntaxtree.Identifier(new NodeToken("y"));
+        
+        // Create expression (5)
+        Expression five = new Expression(
             new NodeChoice(
                 new PrimaryExpression(
                     new NodeChoice(
-                        new IntegerLiteral(new NodeToken("42"))
+                        new IntegerLiteral(new NodeToken("5"))
                     )
                 )
             )
         );
+
+        // Create assignment statement: t2 = 5
+        AssignmentStatement ass1 = new AssignmentStatement(id, five);
+
+        PlusExpression sum = new PlusExpression(
+            new PrimaryExpression(
+                new NodeChoice(id)
+            ),
+            new PrimaryExpression(
+                new NodeChoice(
+                    new IntegerLiteral(new NodeToken("42"))
+                )
+            )
+        );
+
+        Expression expr = new Expression(
+            new NodeChoice(sum)
+        );
         
-        // Create assignment statement: x = 42;
-        AssignmentStatement assignStmt = new AssignmentStatement(id, expr);
+        // Create assignment statement: y = t2 + 42;
+        AssignmentStatement assignStmt = new AssignmentStatement(idY, expr);
         
         System.out.println("\n\nTEST: AssignmentStatement");
         System.out.println("--------------------------------");
         
-        // Visit the assignment statement
+        // Visit the assignment statements
+        ass1.accept(generator);
         assignStmt.accept(generator);
         
         // Get generated instructions
@@ -467,7 +514,8 @@ public class SparrowGeneratorTest {
         // Create array reference: arr.length
         PrimaryExpression arrayRef = new PrimaryExpression(
             new NodeChoice(
-                new minijava.syntaxtree.Identifier(new NodeToken("arr"))
+                // Also testing name mangling in action
+                new minijava.syntaxtree.Identifier(new NodeToken("t3"))
             )
         );
         
@@ -594,6 +642,136 @@ public class SparrowGeneratorTest {
 
         // Print generated instructions
         print(instructions);
+    }
+
+    @Test
+    public void testVisitMethodDeclaration() {
+        System.out.println("\n\nTEST: MethodDeclaration");
+        System.out.println("--------------------------------");
+
+        // Test 1: Method with no parameters
+        // public int simpleMethod() { return 42; }
+        
+        // Create method type and name
+        Type methodType = new Type(new NodeChoice(new IntegerType()));
+        minijava.syntaxtree.Identifier methodName = new minijava.syntaxtree.Identifier(new NodeToken("simpleMethod"));
+        
+        // Create return expression (42)
+        Expression returnExpr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new IntegerLiteral(new NodeToken("42"))
+                    )
+                )
+            )
+        );
+        
+        // Create empty lists for parameters, vars, and statements
+        NodeOptional emptyParams = new NodeOptional();
+        NodeListOptional emptyVarDecls = new NodeListOptional();
+        NodeListOptional emptyStatements = new NodeListOptional();
+        
+        MethodDeclaration simpleMethod = new MethodDeclaration(
+            methodType,      // return type
+            methodName,      // method name
+            emptyParams,     // no parameters
+            emptyVarDecls,   // no variable declarations
+            emptyStatements, // no statements
+            returnExpr       // return 42
+        );
+
+        // Visit simple method
+        generator.getCurrentInstructions().clear();
+        simpleMethod.accept(generator);
+        // System.out.println("\nMethod without parameters:");
+        // print(generator.getCurrentInstructions());
+
+        // Test 2: Method with parameters
+        // public int complexMethod(int a, int b) { return a + b; }
+
+        // Create method type and name
+        methodType = new Type(new NodeChoice(new IntegerType()));
+        methodName = new minijava.syntaxtree.Identifier(new NodeToken("complexMethod"));
+
+        // Create parameter list
+        FormalParameter param1 = new FormalParameter(
+            new Type(new NodeChoice(new IntegerType())),
+            new minijava.syntaxtree.Identifier(new NodeToken("a"))
+        );
+
+        FormalParameter param2 = new FormalParameter(
+            new Type(new NodeChoice(new IntegerType())),
+            new minijava.syntaxtree.Identifier(new NodeToken("b"))
+        );
+
+        NodeListOptional paramRests = new NodeListOptional(
+            new FormalParameterRest(param2)
+        );
+
+        FormalParameterList paramList = new FormalParameterList(param1, paramRests);
+
+        // Create return expression (a + b)
+        Expression param1Expr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new minijava.syntaxtree.Identifier(new NodeToken("a"))
+                    )
+                )
+            )
+        );
+
+        Expression param2Expr = new Expression(
+            new NodeChoice(
+                new PrimaryExpression(
+                    new NodeChoice(
+                        new minijava.syntaxtree.Identifier(new NodeToken("b"))
+                    )
+                )
+            )
+        );
+
+        PlusExpression plusExpr = new PlusExpression(
+            new PrimaryExpression(new NodeChoice(param1Expr)),
+            new PrimaryExpression(new NodeChoice(param2Expr))
+        );
+
+        Expression returnExpr2 = new Expression(
+            new NodeChoice(plusExpr)
+        );
+
+        MethodDeclaration complexMethod = new MethodDeclaration(
+            methodType,                    // return type
+            methodName,                   // method name
+            new NodeOptional(paramList),  // parameters
+            emptyVarDecls,               // no variable declarations
+            emptyStatements,             // no statements
+            returnExpr2                  // return a + b
+        );
+
+        // Visit complex method
+        generator.getCurrentInstructions().clear();
+        complexMethod.accept(generator);
+        System.out.println("\nMethod with parameters:");
+        System.out.println(generator.getGeneratedCode());
+    }
+
+    @Test
+    public void testVisitAllocationExpression() {
+        System.out.println("\n\nTEST: AllocationExpression");
+        System.out.println("--------------------------------");
+        AllocationExpression allocExpr = new AllocationExpression(
+            new minijava.syntaxtree.Identifier(
+                new NodeToken("A")
+            )
+        );
+
+        generator.visit(allocExpr);
+
+        ArrayList<Instruction> instructions = generator.getCurrentInstructions();
+        print(instructions);
+
     }
 
 }

@@ -1,18 +1,27 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
+import IR.token.FunctionName;
 import IR.token.Identifier;
 import IR.token.Label;
+import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.ArrayAssignmentStatement;
 import minijava.syntaxtree.ArrayLength;
 import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
+import minijava.syntaxtree.ClassDeclaration;
 import minijava.syntaxtree.CompareExpression;
 import minijava.syntaxtree.FalseLiteral;
+import minijava.syntaxtree.FormalParameterList;
+import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
+import minijava.syntaxtree.Node;
 import minijava.syntaxtree.NotExpression;
 import minijava.syntaxtree.PlusExpression;
 import minijava.syntaxtree.PrintStatement;
@@ -23,13 +32,16 @@ import minijava.syntaxtree.WhileStatement;
 import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
 import sparrow.Alloc;
+import sparrow.Block;
 import sparrow.ErrorMessage;
+import sparrow.FunctionDecl;
 import sparrow.Goto;
 import sparrow.IfGoto;
 import sparrow.Instruction;
 import sparrow.LabelInstr;
 import sparrow.LessThan;
 import sparrow.Load;
+import sparrow.Move_Id_FuncName;
 import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
@@ -43,54 +55,122 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private int tempCounter;
     private Program code;
     private Identifier lastResult;
+    private ArrayList<Identifier> params;
+    private final HashSet<String> reservedRegisters;
+    private final HashMap<String, ClassLayout> classLayouts;
+    String currentClass;
+    ClassLayout currentLayout;
 
-    public SparrowGenerator() {
-        this.code = new Program();
+    public SparrowGenerator(HashMap<String, ClassLayout> layouts) {
+        this.code = new Program(new ArrayList<>());
         this.tempCounter = 0;
         this.currentInstructions = new ArrayList<>();
         this.lastResult = null;
+        this.classLayouts = layouts;
+        this.reservedRegisters = new HashSet<>();
+
+        // Populate reserved registers hashset
+        // 'a' registers
+        for (int i = 2; i <= 7; i++)
+            reservedRegisters.add("a" + i);
+
+        // 's' registers
+        for (int i = 1; i <= 11; i++)
+            reservedRegisters.add("s" + i);
+
+        // 't' registers
+        for (int i = 0; i <= 5; i++)
+            reservedRegisters.add("t" + i);
     }
 
-    // Get next available temp variable
-    private String getNewTemp() {
-        return "v" + (tempCounter++);
+    /**
+     * Helper functions
+     */
+    private Identifier getNewTemp() {
+        return new Identifier("v" + (tempCounter++));
     }
 
-    // Get generated Sparrow program
+    public Identifier resolveName(String name) {
+        // Mangle if name conflict
+        return reservedRegisters.contains(name) ? new Identifier("var_" + name) : new Identifier(name);
+    }
+
+    private boolean isField(Identifier id) {
+        return currentLayout.fieldOffsets.containsKey(id.toString());
+    }
+
     public String getGeneratedCode() {
         return code.toString();
     }
 
-    // Get generated instructions
     public ArrayList<Instruction> getCurrentInstructions() {
         return currentInstructions;
     }
 
-    // Get last result
     public Identifier getLastResult() {
         return lastResult;
     }
 
-    // Check conflict with reserved register names
-    private boolean isReservedRegister(String id) {
-        // 'a' registers
-        for (int i = 2; i <= 7; i++)
-            if (id.equals("a" + i))
-                return true;
+    /**
+     * Classes -> Sparrow instructions
+     */
+    @Override
+    public void visit(ClassDeclaration n) {
+        this.currentClass = n.f1.f0.toString();
+        this.currentLayout = classLayouts.get(currentClass);
 
-        // 's' registers
-        for (int i = 1; i <= 11; i++) {
-            if (id.equals("s" + i))
-                return true;
+        n.f3.accept(this);
+        n.f4.accept(this);
+    }
+
+    /**
+     * Methods -> Sparrow instructions
+     */
+    @Override
+    public void visit(MethodDeclaration n) {
+        ArrayList<Instruction> savedInstructions = currentInstructions;
+        currentInstructions = new ArrayList<>();
+        params = new ArrayList<>();
+        tempCounter = 0;
+
+        // Process function name
+        n.f2.accept(this);
+
+        // Process formal parameters
+        if (n.f4.present()) {
+            n.f4.accept(this);
         }
 
-        // 't' registers
-        for (int i = 0; i <= 5; i++) {
-            if (id.equals("t" + i))
-                return true;
+        // Process variable declaration
+        for (Node varDecl : n.f7.nodes) {
+            varDecl.accept(this);
         }
 
-        return false;
+        // Process statements
+        n.f8.accept(this);
+        n.f10.accept(this);
+        Identifier returnId = lastResult;
+
+        // Create block (variable declaration + statements + return)
+        Block block = new Block(currentInstructions, returnId);
+
+        // Create function declaration
+        FunctionDecl methodDecl = new FunctionDecl(new FunctionName(n.f2.f0.toString()), params, block);
+
+        code.funDecls.add(methodDecl);
+        currentInstructions = savedInstructions;
+
+    }
+
+    @Override
+    public void visit(FormalParameterList n) {
+        n.f0.accept(this);
+        params.add(lastResult);
+
+        for (Node paramRest: n.f1.nodes) {
+            ((FormalParameterRest) paramRest).f1.accept(this);
+            params.add(lastResult);
+        }
     }
 
     /**
@@ -98,15 +178,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
      */
     @Override
     public void visit(AssignmentStatement n) {
-        n.f0.accept(this);
-        Identifier lhs = lastResult;
         n.f2.accept(this);
         Identifier rhs = lastResult;
 
-        currentInstructions.add(new Move_Id_Id(lhs, rhs));
+        Identifier lhs = resolveName(n.f0.f0.toString());
+
+        if (isField(lhs)) {
+            int lhsOffset = currentLayout.fieldOffsets.get(lhs.toString());
+            currentInstructions.add(new Store(new Identifier("this"), lhsOffset, rhs));
+        } else {
+            currentInstructions.add(new Move_Id_Id(lhs, rhs));
+        }
     }
 
-    // TODO: ArrayAssignmentStatement
     @Override
     public void visit(ArrayAssignmentStatement n) {
         Label elseLabel = new Label("else_" + (tempCounter++));
@@ -118,7 +202,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Get array address
         n.f0.accept(this);
         Identifier arr = lastResult;
-        Identifier size = new Identifier(getNewTemp());
+        Identifier size = getNewTemp();
         currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
         
         // Get index
@@ -126,19 +210,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
         Identifier idx = lastResult;
         
         // Check idx < 0. Error if true
-        Identifier zero = new Identifier(getNewTemp());
+        Identifier zero = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(zero, 0));
-        Identifier tooSmall = new Identifier(getNewTemp());
+        Identifier tooSmall = getNewTemp();
         currentInstructions.add(new LessThan(tooSmall, idx, zero));
         currentInstructions.add(new IfGoto(tooSmall, checkUpper));
         currentInstructions.add(new Goto(error));
 
         // Check size - 1 < idx. Error if false
         currentInstructions.add(new LabelInstr(checkUpper));
-        Identifier tooBig = new Identifier(getNewTemp());
-        Identifier one = new Identifier(getNewTemp());
+        Identifier tooBig = getNewTemp();
+        Identifier one = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(one, 1));
-        Identifier upperBound = new Identifier(getNewTemp());
+        Identifier upperBound = getNewTemp();
         currentInstructions.add(new Subtract(upperBound, size, one));
         currentInstructions.add(new LessThan(tooBig, upperBound, idx));
         currentInstructions.add(new IfGoto(tooBig, elseLabel));
@@ -146,11 +230,11 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         // Else block: Okay if -1 < idx < size. Compute offset
         currentInstructions.add(new LabelInstr(elseLabel));
-        Identifier temp = new Identifier(getNewTemp());
+        Identifier temp = getNewTemp();
         currentInstructions.add(new Add(temp, one, idx));
-        Identifier four = new Identifier(getNewTemp());
+        Identifier four = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(four, 4));
-        Identifier byteOffset = new Identifier(getNewTemp());
+        Identifier byteOffset = getNewTemp();
         currentInstructions.add(new Multiply(byteOffset, four, temp));
 
         // Store from temp into arr[idx]
@@ -218,7 +302,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier op2 = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Multiply(lastResult, op1, op2));
     }
 
@@ -229,7 +313,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier op2 = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new LessThan(lastResult, op1, op2));
     }
 
@@ -240,7 +324,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier op2 = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Add(lastResult, op1, op2));
     }
 
@@ -251,7 +335,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier op2 = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Subtract(lastResult, op1, op2));
     }
 
@@ -262,7 +346,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f2.accept(this);
         Identifier op2 = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Multiply(lastResult, op1, op2));
     }
 
@@ -277,7 +361,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Get array address
         n.f0.accept(this);
         Identifier arr = lastResult;
-        Identifier size = new Identifier(getNewTemp());
+        Identifier size = getNewTemp();
         currentInstructions.add(new Load(size, arr, 0)); // Load array size from offset 0
         
         // Get index
@@ -285,19 +369,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
         Identifier idx = lastResult;
         
         // Check idx < 0. Error if true
-        Identifier zero = new Identifier(getNewTemp());
+        Identifier zero = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(zero, 0));
-        Identifier tooSmall = new Identifier(getNewTemp());
+        Identifier tooSmall = getNewTemp();
         currentInstructions.add(new LessThan(tooSmall, idx, zero));
         currentInstructions.add(new IfGoto(tooSmall, checkUpper));
         currentInstructions.add(new Goto(error));
 
         // Check size - 1 < idx. Error if false
         currentInstructions.add(new LabelInstr(checkUpper));
-        Identifier tooBig = new Identifier(getNewTemp());
-        Identifier one = new Identifier(getNewTemp());
+        Identifier tooBig = getNewTemp();
+        Identifier one = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(one, 1));
-        Identifier upperBound = new Identifier(getNewTemp());
+        Identifier upperBound = getNewTemp();
         currentInstructions.add(new Subtract(upperBound, size, one));
         currentInstructions.add(new LessThan(tooBig, upperBound, idx));
         currentInstructions.add(new IfGoto(tooBig, elseLabel));
@@ -305,15 +389,15 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         // Else block: Okay if -1 < idx < size. Compute offset
         currentInstructions.add(new LabelInstr(elseLabel));
-        Identifier temp = new Identifier(getNewTemp());
+        Identifier temp = getNewTemp();
         currentInstructions.add(new Add(temp, one, idx));
-        Identifier four = new Identifier(getNewTemp());
+        Identifier four = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(four, 4));
-        Identifier byteOffset = new Identifier(getNewTemp());
+        Identifier byteOffset = getNewTemp();
         currentInstructions.add(new Multiply(byteOffset, four, temp));
 
         // Load arr[idx] into new temp
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Load(lastResult, byteOffset, 0));
         currentInstructions.add(new Goto(endIf));
 
@@ -332,7 +416,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         Identifier arr = lastResult;
         
         // Load array length from heap
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Load(lastResult, arr, 0));
     }
 
@@ -343,19 +427,19 @@ public class SparrowGenerator extends DepthFirstVisitor {
     @Override
     public void visit(IntegerLiteral n) {
         int val = Integer.parseInt(n.f0.toString());
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(lastResult, val));
     }
 
     @Override
     public void visit(TrueLiteral n) {
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(lastResult, 1));
     }
 
     @Override
     public void visit(FalseLiteral n) {
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(lastResult, 0));
     }
 
@@ -363,12 +447,13 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(minijava.syntaxtree.Identifier n) {
         String id = n.f0.toString();
 
-        if (isReservedRegister(id)) {
-            // Mangle Identifier if there is a name conflict
-            String mangledName = "var_" + id;
-            lastResult = new Identifier(mangledName);
+        if (isField(new Identifier(id))) {
+            int offset = currentLayout.fieldOffsets.get(id);
+            Identifier temp = getNewTemp();
+            currentInstructions.add(new Load(temp, new Identifier("this"), offset));
+            lastResult = temp;
         } else {
-            lastResult = new Identifier(id);
+            lastResult = resolveName(id);
         }
     }
 
@@ -389,26 +474,30 @@ public class SparrowGenerator extends DepthFirstVisitor {
         String elseLabel = "else_" + (tempCounter++);
         String endLabel = "endif_" + (tempCounter++);
 
-        Identifier zero = new Identifier(getNewTemp());
+        Identifier zero = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(zero, 0));
 
-        Identifier isNonNeg = new Identifier(getNewTemp());
+        Identifier isNonNeg = getNewTemp();
         currentInstructions.add(new LessThan(isNonNeg, zero, numElements));
 
         currentInstructions.add(new IfGoto(isNonNeg, new Label(elseLabel)));
         
         // If numElements > 0
         // Byte size of array ... 4 * n + 4
-        Identifier four = new Identifier(getNewTemp());
+        Identifier four = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(four, 4));
-        Identifier product = new Identifier(getNewTemp());
+        Identifier product = getNewTemp();
         currentInstructions.add(new Multiply(product, four, numElements));
-        Identifier sz = new Identifier(getNewTemp());
+        Identifier sz = getNewTemp();
         currentInstructions.add(new Add(sz, product, four));
 
         // Allocate array with byte size
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
         currentInstructions.add(new Alloc(lastResult, sz));
+        // Error check if alloc failed
+        String errorLabel = "nullCheck_" + tempCounter++;
+        currentInstructions.add(new IfGoto(lastResult, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
 
         // Store number of elements
         currentInstructions.add(new Store(lastResult, 0, numElements));
@@ -420,20 +509,76 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new LabelInstr(new Label(elseLabel)));
         currentInstructions.add(new ErrorMessage(errMsg));
 
+        // Null check
+        currentInstructions.add(new LabelInstr(new Label(errorLabel)));
+        currentInstructions.add(new ErrorMessage("\"Null pointer\""));
+
         // Endif
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
-    // TODO: AllocationExpression
+    @Override
+    public void visit(AllocationExpression n) {
+        String className = n.f1.f0.toString();
+        ClassLayout layout = classLayouts.get(className);
+
+        // Allocate space for fields table (vmt pointer + fields)
+        Identifier size = getNewTemp();
+        currentInstructions.add(new Move_Id_Integer(size, layout.objSize));
+        Identifier objPointer = new Identifier("ft");
+        currentInstructions.add(new Alloc(objPointer, size));
+        // Error check if alloc failed
+        String errorLabel = "nullCheck_" + tempCounter++;
+        String endLabel = "endNull_" + tempCounter++;
+        currentInstructions.add(new IfGoto(objPointer, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
+
+        // Allocate virtual method table (vmt)
+        Identifier vmtSize = getNewTemp();
+        currentInstructions.add(new Move_Id_Integer(vmtSize, layout.vmt.size() * 4));
+        Identifier vmtPointer = new Identifier("vmt");
+        currentInstructions.add(new Alloc(vmtPointer, vmtSize));
+        // Error check if alloc failed 
+        currentInstructions.add(new IfGoto(vmtPointer, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
+
+        // Initialize VMT entries
+        for (String name: layout.vmt) {
+            int offset = layout.methodOffsets.get(name);
+            Identifier ptr = getNewTemp();
+            currentInstructions.add(new Move_Id_FuncName(ptr, new FunctionName(name)));
+            currentInstructions.add(new Store(vmtPointer, offset, ptr));
+        }
+
+        // Store VMT pointer at offset 0 of fields table
+        currentInstructions.add(new Store(objPointer, 0, vmtPointer));
+
+        // Initialize all fields to 0
+        Identifier zero = new Identifier("fInit");
+        currentInstructions.add(new Move_Id_Integer(zero, 0));
+        for (String fieldName : layout.fields) {
+            int offset = layout.fieldOffsets.get(fieldName);
+            currentInstructions.add(new Store(objPointer, offset, zero));
+        }
+
+        // Null check
+        currentInstructions.add(new LabelInstr(new Label(errorLabel)));
+        currentInstructions.add(new ErrorMessage("\"Null pointer\""));
+        
+        // Endif
+        currentInstructions.add(new LabelInstr(new Label(endLabel)));
+
+        lastResult = objPointer;
+    }
 
     @Override
     public void visit(NotExpression n) {
         n.f1.accept(this);
         Identifier op = lastResult;
 
-        lastResult = new Identifier(getNewTemp());
+        lastResult = getNewTemp();
 
-        Identifier one = new Identifier(getNewTemp());
+        Identifier one = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(one, 1));
 
         currentInstructions.add(new Subtract(lastResult, one, op));
