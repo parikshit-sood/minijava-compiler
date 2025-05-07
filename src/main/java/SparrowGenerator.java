@@ -517,7 +517,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
-    // TODO: AllocationExpression. Test with JUnit.
     @Override
     public void visit(AllocationExpression n) {
         String className = n.f1.f0.toString();
