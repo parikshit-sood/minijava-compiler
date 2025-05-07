@@ -5,6 +5,7 @@ import java.util.HashSet;
 import IR.token.FunctionName;
 import IR.token.Identifier;
 import IR.token.Label;
+import minijava.syntaxtree.AllocationExpression;
 import minijava.syntaxtree.AndExpression;
 import minijava.syntaxtree.ArrayAllocationExpression;
 import minijava.syntaxtree.ArrayAssignmentStatement;
@@ -40,6 +41,7 @@ import sparrow.Instruction;
 import sparrow.LabelInstr;
 import sparrow.LessThan;
 import sparrow.Load;
+import sparrow.Move_Id_FuncName;
 import sparrow.Move_Id_Id;
 import sparrow.Move_Id_Integer;
 import sparrow.Multiply;
@@ -171,6 +173,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     /**
      * Statements -> Sparrow instructions
      */
+    // TODO: Test for fields table modification
     @Override
     public void visit(AssignmentStatement n) {
         n.f0.accept(this);
@@ -438,6 +441,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Move_Id_Integer(lastResult, 0));
     }
 
+    // TODO: Test for fields table modification
     @Override
     public void visit(minijava.syntaxtree.Identifier n) {
         String id = n.f0.toString();
@@ -510,7 +514,53 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new LabelInstr(new Label(endLabel)));
     }
 
-    // TODO: AllocationExpression
+    // TODO: AllocationExpression. Test with JUnit.
+    @Override
+    public void visit(AllocationExpression n) {
+        String className = n.f1.f0.toString();
+        ClassLayout layout = classLayouts.get(className);
+
+        // Allocate space for fields table (vmt pointer + fields)
+        Identifier size = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(size, layout.objSize));
+        Identifier objPointer = new Identifier(getNewTemp());
+        currentInstructions.add(new Alloc(objPointer, size));
+
+        // Allocate virtual method table (vmt)
+        Identifier vmtSize = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(vmtSize, layout.vmt.size() * 4));
+        Identifier vmtPointer = new Identifier(getNewTemp());
+        currentInstructions.add(new Alloc(vmtPointer, vmtSize));
+
+        // Initialize VMT entries
+        for (String name: layout.vmt) {
+            int offset = layout.methodOffsets.get(name);
+            Identifier ptr = new Identifier(getNewTemp());
+            currentInstructions.add(new Move_Id_FuncName(ptr, new FunctionName(name)));
+            currentInstructions.add(new Store(vmtPointer, offset, ptr));
+        }
+
+        // Store VMT pointer at offset 0 of fields table
+        currentInstructions.add(new Store(objPointer, 0, vmtPointer));
+
+        // Initialize all fields to 0
+        Identifier zero = new Identifier(getNewTemp());
+        currentInstructions.add(new Move_Id_Integer(zero, 0));
+        for (String fieldName : layout.fields) {
+            int offset = layout.fieldOffsets.get(fieldName);
+            currentInstructions.add(new Store(objPointer, offset, zero));
+        }
+
+        String errorLabel = "nullCheck_" + tempCounter++;
+        String endLabel = "endNull_" + tempCounter++;
+        currentInstructions.add(new IfGoto(objPointer, new Label(errorLabel)));
+        currentInstructions.add(new Goto(new Label(endLabel)));
+        currentInstructions.add(new LabelInstr(new Label(errorLabel)));
+        currentInstructions.add(new ErrorMessage("\"null pointer\""));
+        currentInstructions.add(new LabelInstr(new Label(endLabel)));
+
+        lastResult = objPointer;
+    }
 
     @Override
     public void visit(NotExpression n) {
