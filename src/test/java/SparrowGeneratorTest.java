@@ -53,8 +53,8 @@ public class SparrowGeneratorTest {
         HashMap<String, ClassLayout> testLayout = new HashMap<>();
         ClassLayout a = new ClassLayout();
         a.className = "A";
-        a.fields.add("x");
-        a.fieldOffsets.put("x", 4);
+        a.fields.add("y");
+        a.fieldOffsets.put("y", 4);
         testLayout.put("A", a);
         generator = new SparrowGenerator(testLayout);
         generator.currentClass = "A";
@@ -418,9 +418,9 @@ public class SparrowGeneratorTest {
 
     @Test
     public void testVisitAssignmentStatement() {
-        // Create an identifier (x) and expression (x + 42)
-        minijava.syntaxtree.Identifier idX = new minijava.syntaxtree.Identifier(new NodeToken("x"));
-        // minijava.syntaxtree.Identifier idY = new minijava.syntaxtree.Identifier(new NodeToken("y"));
+        // Create an identifier (t2) and expression (t2 + 42)
+        minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("t2"));
+        minijava.syntaxtree.Identifier idY = new minijava.syntaxtree.Identifier(new NodeToken("y"));
         
         // Create expression (5)
         Expression five = new Expression(
@@ -433,12 +433,12 @@ public class SparrowGeneratorTest {
             )
         );
 
-        // Create assignment statement: x = 5
-        AssignmentStatement ass1 = new AssignmentStatement(idX, five);
+        // Create assignment statement: t2 = 5
+        AssignmentStatement ass1 = new AssignmentStatement(id, five);
 
         PlusExpression sum = new PlusExpression(
             new PrimaryExpression(
-                new NodeChoice(idX)
+                new NodeChoice(id)
             ),
             new PrimaryExpression(
                 new NodeChoice(
@@ -451,8 +451,8 @@ public class SparrowGeneratorTest {
             new NodeChoice(sum)
         );
         
-        // Create assignment statement: x = x + 42;
-        AssignmentStatement assignStmt = new AssignmentStatement(idX, expr);
+        // Create assignment statement: y = t2 + 42;
+        AssignmentStatement assignStmt = new AssignmentStatement(idY, expr);
         
         System.out.println("\n\nTEST: AssignmentStatement");
         System.out.println("--------------------------------");
