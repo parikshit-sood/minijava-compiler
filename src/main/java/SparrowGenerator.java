@@ -58,8 +58,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private ArrayList<Identifier> params;
     private final HashSet<String> reservedRegisters;
     private final HashMap<String, ClassLayout> classLayouts;
-    private String currentClass;
-    private ClassLayout currentLayout;
+    String currentClass;
+    ClassLayout currentLayout;
 
     public SparrowGenerator(HashMap<String, ClassLayout> layouts) {
         this.code = new Program(new ArrayList<>());
@@ -83,27 +83,25 @@ public class SparrowGenerator extends DepthFirstVisitor {
             reservedRegisters.add("t" + i);
     }
 
-    // Helper: Get next available temp variable
+    /**
+     * Helper functions
+     */
     private String getNewTemp() {
         return "v" + (tempCounter++);
     }
 
-    // Helper: Check if identifier is a class field
     private boolean isField(Identifier id) {
         return currentLayout.fieldOffsets.containsKey(id.toString());
     }
 
-    // Get generated Sparrow program
     public String getGeneratedCode() {
         return code.toString();
     }
 
-    // Get generated instructions
     public ArrayList<Instruction> getCurrentInstructions() {
         return currentInstructions;
     }
 
-    // Get last result
     public Identifier getLastResult() {
         return lastResult;
     }
@@ -173,13 +171,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
     /**
      * Statements -> Sparrow instructions
      */
-    // TODO: Test for fields table modification
     @Override
     public void visit(AssignmentStatement n) {
-        n.f0.accept(this);
-        Identifier lhs = lastResult;
         n.f2.accept(this);
         Identifier rhs = lastResult;
+
+        Identifier lhs = new Identifier(n.f0.f0.toString());
 
         if (isField(lhs)) {
             int lhsOffset = currentLayout.fieldOffsets.get(lhs.toString());

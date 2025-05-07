@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -49,7 +50,15 @@ public class SparrowGeneratorTest {
 
     @Before
     public void setUp() {
-        generator = new SparrowGenerator();
+        HashMap<String, ClassLayout> testLayout = new HashMap<>();
+        ClassLayout a = new ClassLayout();
+        a.className = "A";
+        a.fields.add("x");
+        a.fieldOffsets.put("x", 4);
+        testLayout.put("A", a);
+        generator = new SparrowGenerator(testLayout);
+        generator.currentClass = "A";
+        generator.currentLayout = a;
     }
 
     @Test
@@ -410,7 +419,8 @@ public class SparrowGeneratorTest {
     @Test
     public void testVisitAssignmentStatement() {
         // Create an identifier (x) and expression (x + 42)
-        minijava.syntaxtree.Identifier id = new minijava.syntaxtree.Identifier(new NodeToken("x"));
+        minijava.syntaxtree.Identifier idX = new minijava.syntaxtree.Identifier(new NodeToken("x"));
+        // minijava.syntaxtree.Identifier idY = new minijava.syntaxtree.Identifier(new NodeToken("y"));
         
         // Create expression (5)
         Expression five = new Expression(
@@ -423,11 +433,12 @@ public class SparrowGeneratorTest {
             )
         );
 
-        AssignmentStatement ass1 = new AssignmentStatement(id, five);
+        // Create assignment statement: x = 5
+        AssignmentStatement ass1 = new AssignmentStatement(idX, five);
 
         PlusExpression sum = new PlusExpression(
             new PrimaryExpression(
-                new NodeChoice(id)
+                new NodeChoice(idX)
             ),
             new PrimaryExpression(
                 new NodeChoice(
@@ -441,7 +452,7 @@ public class SparrowGeneratorTest {
         );
         
         // Create assignment statement: x = x + 42;
-        AssignmentStatement assignStmt = new AssignmentStatement(id, expr);
+        AssignmentStatement assignStmt = new AssignmentStatement(idX, expr);
         
         System.out.println("\n\nTEST: AssignmentStatement");
         System.out.println("--------------------------------");
