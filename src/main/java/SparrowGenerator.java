@@ -728,7 +728,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Error handling for invalid number of elements
         currentInstructions.add(new LabelInstr(elseLabel));                     // else_1:
         currentInstructions.add(new ErrorMessage(errMsg));                      // error("Array allocation with invalid size")
-        currentInstructions.add(new Goto(endLabel));                            // goto endif_2
 
         // Error handling for alloc failure
         currentInstructions.add(new LabelInstr(new Label(errorLabel)));         // nullErr_7:
