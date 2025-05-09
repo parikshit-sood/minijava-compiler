@@ -19,6 +19,8 @@ import minijava.syntaxtree.FormalParameterList;
 import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.IfStatement;
 import minijava.syntaxtree.IntegerLiteral;
+import minijava.syntaxtree.MainClass;
+import minijava.syntaxtree.MessageSend;
 import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.MinusExpression;
 import minijava.syntaxtree.Node;
@@ -58,6 +60,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private ArrayList<Identifier> params;
     private final HashSet<String> reservedRegisters;
     private final HashMap<String, ClassLayout> classLayouts;
+    // HashMap<String, String> objTypeMap;
     String currentClass;
     ClassLayout currentLayout;
 
@@ -114,6 +117,30 @@ public class SparrowGenerator extends DepthFirstVisitor {
     /**
      * Classes -> Sparrow instructions
      */
+    @Override
+    public void visit(MainClass n) {
+        currentClass = n.f1.f0.toString();
+
+        // Create block of current instuctions
+        ArrayList<Instruction> savedInstructions = currentInstructions;
+        currentInstructions = new ArrayList<>();
+
+        // Accept statements
+        n.f15.accept(this);
+        
+        // Set return value for main function block
+        Identifier returnId = getNewTemp();
+        currentInstructions.add(new Move_Id_Integer(returnId, 0));
+
+        Block block = new Block(currentInstructions, returnId);
+
+        // Create a function with name "main"
+        FunctionDecl mainFunc = new FunctionDecl(new FunctionName("main"), new ArrayList<>(), block);
+
+        code.funDecls.add(mainFunc);
+        currentInstructions = savedInstructions;
+    }
+
     @Override
     public void visit(ClassDeclaration n) {
         this.currentClass = n.f1.f0.toString();
@@ -421,6 +448,10 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
 
     // TODO: MessageSend
+    @Override
+    public void visit(MessageSend n) {
+
+    }
     // TODO: ExpressionList
     // TODO: ExpressionRest
 
