@@ -32,7 +32,7 @@ public class TableBuilder extends DepthFirstVisitor {
         // Collect methods
         for (Node node: n.f4.nodes) {
             MethodDeclaration md = (MethodDeclaration) node;
-            String methodName = md.f1.f0.toString();
+            String methodName = md.f2.f0.toString();
             layout.vmt.add(currentClass + "_" + methodName);
         }
 
