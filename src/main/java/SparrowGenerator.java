@@ -99,7 +99,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     }
 
     private boolean isField(Identifier id) {
-        return currentLayout.fieldOffsets.containsKey(id.toString());
+        return currentLayout != null && currentLayout.fieldOffsets.containsKey(id.toString());
     }
 
     public String getGeneratedCode() {
@@ -221,7 +221,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     @Override
     public void visit(ArrayAssignmentStatement n) {
         Label elseLabel = new Label("else_" + (tempCounter++));
-        Label checkUpper = new Label("check_upper");
+        Label checkUpper = new Label("check_upper" + (tempCounter++));
         Label endIf = new Label("endif_" + (tempCounter++));
         Label error = new Label("error_" + (tempCounter++));
         String errMsg = "\"ArrayIndexOutOfBoundsException\"";
@@ -380,7 +380,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     @Override
     public void visit(ArrayLookup n) {
         Label elseLabel = new Label("else_" + (tempCounter++));
-        Label checkUpper = new Label("check_upper");
+        Label checkUpper = new Label("check_upper" + (tempCounter++));
         Label endIf = new Label("endif_" + (tempCounter++));
         Label error = new Label("error_" + (tempCounter++));
         String errMsg = "\"ArrayIndexOutOfBoundsException\"";
