@@ -14,6 +14,8 @@ import minijava.syntaxtree.ArrayLookup;
 import minijava.syntaxtree.AssignmentStatement;
 import minijava.syntaxtree.ClassDeclaration;
 import minijava.syntaxtree.CompareExpression;
+import minijava.syntaxtree.ExpressionList;
+import minijava.syntaxtree.ExpressionRest;
 import minijava.syntaxtree.FalseLiteral;
 import minijava.syntaxtree.FormalParameterList;
 import minijava.syntaxtree.FormalParameterRest;
@@ -35,6 +37,7 @@ import minijava.visitor.DepthFirstVisitor;
 import sparrow.Add;
 import sparrow.Alloc;
 import sparrow.Block;
+import sparrow.Call;
 import sparrow.ErrorMessage;
 import sparrow.FunctionDecl;
 import sparrow.Goto;
@@ -60,7 +63,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private ArrayList<Identifier> params;
     private final HashSet<String> reservedRegisters;
     private final HashMap<String, ClassLayout> classLayouts;
-    // HashMap<String, String> objTypeMap;
+    HashMap<String, String> objTypeMap;
     String currentClass;
     ClassLayout currentLayout;
 
@@ -70,6 +73,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
         this.currentInstructions = new ArrayList<>();
         this.lastResult = null;
         this.classLayouts = layouts;
+        this.objTypeMap = new HashMap<>();
         this.reservedRegisters = new HashSet<>();
 
         // Populate reserved registers hashset
@@ -142,9 +146,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(MainClass n) {
         currentClass = n.f1.f0.toString();
 
-        // Process variable declarations
-        n.f14.accept(this);
-
         // Process statements
         n.f15.accept(this);
         
@@ -173,7 +174,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         this.currentClass = n.f1.f0.toString();
         this.currentLayout = classLayouts.get(currentClass);
 
-        n.f3.accept(this);
         n.f4.accept(this);
     }
 
@@ -201,7 +201,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         ArrayList<Instruction> savedInstructions = currentInstructions;
         currentInstructions = new ArrayList<>();
         params = new ArrayList<>();
-        tempCounter = 0;
 
         // Process function name
         n.f2.accept(this);
@@ -212,10 +211,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
             n.f4.accept(this);
         }
 
-        // Process variable declaration
-        for (Node varDecl : n.f7.nodes) {
-            varDecl.accept(this);
-        }
+        objTypeMap.put("this", currentClass);
 
         // Process statements
         n.f8.accept(this);
@@ -272,6 +268,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
         } else {
             currentInstructions.add(new Move_Id_Id(lhs, rhs));                              // v1 = v0
         }
+
+        // Assign type of rhs to lhs
+        if (objTypeMap.containsKey(rhs.toString())) {
+            objTypeMap.put(lhs.toString(), objTypeMap.get(rhs.toString()));
+        }
+
     }
 
     /**
@@ -618,10 +620,71 @@ public class SparrowGenerator extends DepthFirstVisitor {
     // TODO: MessageSend
     @Override
     public void visit(MessageSend n) {
+        // Process caller object
+        n.f0.accept(this);
+        Identifier callerObj = lastResult;
+
+        // Null pointer check
+        Label nullCheck = new Label("nullErr_" + (tempCounter++));
+        Label endCheck = new Label("endif_" + (tempCounter++));
+        currentInstructions.add(new IfGoto(callerObj, nullCheck));
+        currentInstructions.add(new Goto(endCheck));
+        currentInstructions.add(new LabelInstr(nullCheck));
+        currentInstructions.add(new ErrorMessage("\"Null pointer\""));
+        currentInstructions.add(new LabelInstr(endCheck));
+
+        // Get vmt table for caller object's class
+        Identifier vmt = getNewTemp();
+        currentInstructions.add(new Load(vmt, callerObj, 0));
+
+        // Load method pointer from vmt into identifier
+        String methodName = n.f2.f0.toString();
+        String callerClass = objTypeMap.get(callerObj.toString());
+        ClassLayout layout = classLayouts.get(callerClass);
+        int methodOffset = layout.methodOffsets.get(callerClass + "_" + methodName);
+        Identifier funcPtr = getNewTemp();
+        currentInstructions.add(new Load(funcPtr, vmt, methodOffset));
+
+        // Process arguments list (also handle 'this' parameter)
+        ArrayList<Identifier> callArgs = new ArrayList<>();
+        callArgs.add(callerObj);
+
+        if (n.f4.present()) {
+            params = new ArrayList<>();
+            n.f4.accept(this);
+            callArgs.addAll(params);
+        }
+
+        Identifier callFunc = getNewTemp();
+        currentInstructions.add(new Call(callFunc, funcPtr, callArgs));
+        lastResult = callFunc;
 
     }
     // TODO: ExpressionList
+    /**
+    * f0 -> Expression()
+    * f1 -> ( ExpressionRest() )*
+    */
+    @Override
+    public void visit(ExpressionList n) {
+        params = new ArrayList<>();
+        n.f0.accept(this);
+        params.add(lastResult);
+
+        for (Node node: n.f1.nodes) {
+            ((ExpressionRest) node).f1.accept(this);
+            params.add(lastResult);
+        }
+    }
     // TODO: ExpressionRest
+    /**
+    * f0 -> ","
+    * f1 -> Expression()
+    */
+    @Override
+    public void visit(ExpressionRest n) {
+        n.f1.accept(this);
+    }
 
     /**
     * f0 -> <INTEGER_LITERAL>
@@ -751,23 +814,24 @@ public class SparrowGenerator extends DepthFirstVisitor {
         // Allocate space for fields table (vmt pointer + fields)
         Identifier size = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(size, layout.objSize));
-        Identifier objPointer = new Identifier("ft");
+        Identifier objPointer = getNewTemp();
         lastResult = objPointer;
         currentInstructions.add(new Alloc(objPointer, size));
         // Error check if alloc failed
         Label errorLabel = new Label("nullErr_" + (tempCounter++));
         Label endLabel = new Label("endIf_" + (tempCounter++));
         currentInstructions.add(new IfGoto(objPointer, errorLabel));
-        // currentInstructions.add(new Goto(new Label(endLabel)));
+
+        // Store objPointer identifier -> className mapping
+        objTypeMap.put(objPointer.toString(), className);
 
         // Allocate virtual method table (vmt)
         Identifier vmtSize = getNewTemp();
         currentInstructions.add(new Move_Id_Integer(vmtSize, layout.vmt.size() * 4));
-        Identifier vmtPointer = new Identifier("vmt");
+        Identifier vmtPointer = getNewTemp();
         currentInstructions.add(new Alloc(vmtPointer, vmtSize));
         // Error check if alloc failed 
         currentInstructions.add(new IfGoto(vmtPointer, errorLabel));
-        // currentInstructions.add(new Goto(new Label(endLabel)));
 
         // Initialize VMT entries
         for (String name: layout.vmt) {
