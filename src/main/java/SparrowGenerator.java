@@ -290,7 +290,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(ArrayAssignmentStatement n) {
         Label endIf = new Label("endif_" + (tempCounter++));
         Label errorLabel = new Label("error_" + (tempCounter++));
-        String errMsg = "\"ArrayIndexOutOfBoundsException\"";
+        String errMsg = "\"array index out of bounds\"";
 
         // Get array address
         n.f0.accept(this);
@@ -341,7 +341,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         // Index error handling
         currentInstructions.add(new LabelInstr(errorLabel));                            // error_1:
-        currentInstructions.add(new ErrorMessage(errMsg));                              // error("ArrayIndexOutOfBoundsException")
+        currentInstructions.add(new ErrorMessage(errMsg));                              // error("array index out of bounds")
 
         // Endif
         currentInstructions.add(new LabelInstr(endIf));                                 // endif_0
@@ -538,7 +538,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(ArrayLookup n) {
         Label endIf = new Label("endif_" + (tempCounter++));
         Label errorLabel = new Label("error_" + (tempCounter++));
-        String errMsg = "\"ArrayIndexOutOfBoundsException\"";
+        String errMsg = "\"array index out of bounds\"";
 
         // Get array address
         n.f0.accept(this);
@@ -588,7 +588,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         // Index error handling
         currentInstructions.add(new LabelInstr(errorLabel));                            // error_1:
-        currentInstructions.add(new ErrorMessage(errMsg));                              // error("ArrayIndexOutOfBoundsException")
+        currentInstructions.add(new ErrorMessage(errMsg));                              // error("array index out of bounds")
 
         // Endif
         currentInstructions.add(new LabelInstr(endIf));                                 // endif_0
