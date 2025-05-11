@@ -22,34 +22,27 @@ public class TableBuilder extends DepthFirstVisitor {
         ClassLayout layout = new ClassLayout();
         layout.className = currentClass;
 
-        // Collect fields
+        // Collect fields and set field offsets
+        int fOffset = 4;
         for (Node node : n.f3.nodes) {
             VarDeclaration var = (VarDeclaration) node;
             String fieldName = var.f1.f0.toString();
             layout.fields.add(fieldName);
+            layout.fieldOffsets.put(fieldName, fOffset);
+            fOffset += 4;
         }
 
-        // Collect methods
+        // Collect methods and set method offsets
+        int mOffset = 0;
         for (Node node: n.f4.nodes) {
             MethodDeclaration md = (MethodDeclaration) node;
-            String methodName = md.f2.f0.toString();
-            layout.vmt.add(currentClass + "_" + methodName);
+            String methodName = currentClass + "_" + md.f2.f0.toString();
+            layout.vmt.add(methodName);
+            layout.methodOffsets.put(methodName, mOffset);
+            mOffset += 4;
         }
 
-        // Set field offsets (field offsets start at 4, offset 0 = vmt pointer)
-        for (int i = 0; i < layout.fields.size(); i++) {
-            layout.fieldOffsets.put(layout.fields.get(i), 4 * i + 4);
-        }
-
-        // Set method offsets (start at 0 in vmt)
-        for (int i = 0; i < layout.vmt.size(); i++) {
-            String methodName = layout.vmt.get(i);
-            layout.methodOffsets.put(methodName, 4 * i);
-        }
-
-        // Store class object size (4 + 4 * numFields)
-        layout.objSize = 4 + (4 * layout.fields.size());
-
+        layout.objSize = fOffset;
         layouts.put(currentClass, layout);
     }
 
