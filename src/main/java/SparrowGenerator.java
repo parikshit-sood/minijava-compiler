@@ -212,7 +212,13 @@ public class SparrowGenerator extends DepthFirstVisitor {
             n.f4.accept(this);
         }
 
-        // objTypeMap.put("this", currentClass);
+        ArrayList<String> paramTypes = currentLayout.methodParamTypes.get(currentClass + "_" + n.f2.f0.toString());
+        for (int i = 0; i < paramTypes.size(); i++) {
+            String type = paramTypes.get(i);
+            if (!(type.equals("int") || type.equals("boolean") || type.equals("int[]"))) {
+                objTypeMap.put(params.get(i + 1), type); // +1 to skip "this"
+            }
+        }
 
         // Process statements
         n.f8.accept(this);

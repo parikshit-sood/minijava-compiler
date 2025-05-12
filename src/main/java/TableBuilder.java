@@ -1,7 +1,10 @@
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import minijava.syntaxtree.ClassDeclaration;
+import minijava.syntaxtree.FormalParameterList;
+import minijava.syntaxtree.FormalParameterRest;
 import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.Node;
 import minijava.syntaxtree.VarDeclaration;
@@ -14,6 +17,22 @@ public class TableBuilder extends DepthFirstVisitor {
 
     public HashMap<String, ClassLayout> getLayouts() {
         return layouts;
+    }
+
+    private ArrayList<String> getAllParamTypes(FormalParameterList paramList) {
+        ArrayList<String> result = new ArrayList<>();
+
+        // First param
+        String type1 = paramList.f0.f0.toString();
+        result.add(type1);
+
+        // Rest of the params
+        for (Node restNode : paramList.f1.nodes) {
+            FormalParameterRest rest = (FormalParameterRest) restNode;
+            String typeN = rest.f1.f0.toString();
+            result.add(typeN);
+        }
+        return result;
     }
 
     @Override
@@ -40,6 +59,14 @@ public class TableBuilder extends DepthFirstVisitor {
             layout.vmt.add(methodName);
             layout.methodOffsets.put(methodName, mOffset);
             mOffset += 4;
+
+            if (md.f4.present()) {
+                FormalParameterList fpl = (FormalParameterList) md.f4.node;
+                ArrayList<String> allTypes = getAllParamTypes(fpl);
+                layout.methodParamTypes.put(methodName, allTypes);
+            } else {
+                layout.methodParamTypes.put(methodName, new ArrayList<>());
+            }
         }
 
         layout.objSize = fOffset;

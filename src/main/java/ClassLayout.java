@@ -8,6 +8,7 @@ public class ClassLayout {
     ArrayList<String> vmt = new ArrayList<>();
     HashMap<String, Integer> fieldOffsets = new HashMap<>();
     HashMap<String, Integer> methodOffsets = new HashMap<>();
+    HashMap<String, ArrayList<String>> methodParamTypes = new HashMap<>();
 
     int objSize;
 }
