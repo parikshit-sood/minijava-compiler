@@ -30,6 +30,14 @@ public class TableBuilder extends DepthFirstVisitor {
         return ((minijava.syntaxtree.Identifier) n).f0.toString();
     }
 
+    /**
+     * f0 -> "class"
+     * f1 -> Identifier()
+     * f2 -> "{"
+     * f3 -> ( VarDeclaration() )*
+     * f4 -> ( MethodDeclaration() )*
+     * f5 -> "}"
+     */
     @Override
     public void visit(ClassDeclaration n) {
         currentClass = n.f1.f0.toString();

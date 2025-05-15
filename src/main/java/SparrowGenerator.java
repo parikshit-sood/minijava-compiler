@@ -154,14 +154,9 @@ public class SparrowGenerator extends DepthFirstVisitor {
      */
     @Override
     public void visit(ClassExtendsDeclaration n) {
-        n.f0.accept(this);
-        n.f1.accept(this);
-        n.f2.accept(this);
-        n.f3.accept(this);
-        n.f4.accept(this);
-        n.f5.accept(this);
+        currentClass = n.f1.f0.toString();
+        
         n.f6.accept(this);
-        n.f7.accept(this);
     }
 
     // -----------------
@@ -645,9 +640,13 @@ public class SparrowGenerator extends DepthFirstVisitor {
             }
         }
 
-        IR.token.Identifier funcId = getNewTemp(null);
+        int offset = classLayouts.get(className).getMethodOffset(className + "_" + n.f2.f0.toString());
 
-        currentInstructions.add(new Move_Id_FuncName(funcId, new FunctionName(className + "_" + n.f2.f0.toString())));
+        IR.token.Identifier vmt = getNewTemp("int");
+        currentInstructions.add(new Load(vmt, classObj, 0));
+
+        IR.token.Identifier funcId = getNewTemp(null);
+        currentInstructions.add(new Load(funcId, vmt, offset));
 
         IR.token.Identifier callRes = getNewTemp(className);
         currentInstructions.add(new Call(callRes, funcId, args));
@@ -819,6 +818,15 @@ public class SparrowGenerator extends DepthFirstVisitor {
         currentInstructions.add(new Alloc(vmt, size));
 
         currentInstructions.add(new IfGoto(vmt, nullErr));
+
+        List<String> methods = classObj.getMethods();
+
+        for (String methodName : methods) {
+            int offset = classObj.getMethodOffset(methodName);
+            IR.token.Identifier methodLabel = getNewTemp(null);
+            currentInstructions.add(new Move_Id_FuncName(methodLabel, new FunctionName(methodName)));
+            currentInstructions.add(new Store(vmt, offset, methodLabel));
+        }
 
         currentInstructions.add(new Store(result, 0, vmt));
         currentInstructions.add(new Goto(success));

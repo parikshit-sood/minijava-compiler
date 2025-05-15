@@ -13,6 +13,10 @@ public class J2S {
             TableBuilder tb = new TableBuilder();
             root.accept(tb);
 
+            // Resolve inheritance
+            InheritanceResolver ir = new InheritanceResolver(tb.getLayouts());
+            root.accept(ir);
+
             // Generate + output Sparrow code
             SparrowGenerator codegen = new SparrowGenerator(tb.getLayouts());
             root.accept(codegen);
