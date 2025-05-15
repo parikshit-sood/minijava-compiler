@@ -424,14 +424,25 @@ public class SparrowGenerator extends DepthFirstVisitor {
      */
     @Override
     public void visit(AndExpression n) {
+        Label sc = new Label("else_" + (labelCounter++));
+        Label endSC = new Label("end_" + (labelCounter++));
+
         n.f0.accept(this);
         IR.token.Identifier op1 = lastResult;
+
+        currentInstructions.add(new IfGoto(op1, sc));
 
         n.f2.accept(this);
         IR.token.Identifier op2 = lastResult;
 
         IR.token.Identifier result = getNewTemp("boolean");
-        currentInstructions.add(new Multiply(result, op1, op2));
+        currentInstructions.add(new Move_Id_Id(result, op2));
+        currentInstructions.add(new Goto(endSC));
+
+        currentInstructions.add(new LabelInstr(sc));
+        currentInstructions.add(new Move_Id_Integer(result, 0));
+
+        currentInstructions.add(new LabelInstr(endSC));
 
         lastResult = result;
     }
