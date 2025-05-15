@@ -57,11 +57,14 @@ public class ClassLayout {
         this.className = name;
     }
 
-    public void setFieldOffset(String field, int offset) {
+    public void addField(String field, int offset, String type) {
+        this.fields.add(field);
         this.fieldOffsets.put(field, offset);
+        this.fieldTypes.put(field, type);
     }
 
-    public void setMethodOffset(String method, int offset) {
+    public void addMethod(String method, int offset) {
+        this.methods.add(method);
         this.methodOffsets.put(method, offset);
     }
 

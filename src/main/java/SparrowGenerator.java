@@ -1,10 +1,15 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import IR.token.FunctionName;
 import IR.token.Label;
-import minijava.visitor.DepthFirstVisitor;
 import minijava.syntaxtree.*;
+import minijava.visitor.DepthFirstVisitor;
 import sparrow.*;
-
-import java.util.*;
 
 public class SparrowGenerator extends DepthFirstVisitor {
     private int tempCounter = 0;
@@ -14,7 +19,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
     private Map<String, IR.token.Identifier> varMap;
     private Map<String, String> varTypeMap;
     private String currentClass;
-    private ClassLayout currentLayout;
     private Map<String, ClassLayout> classLayouts;
     private Program code;
     private Set<String> reservedRegs;
@@ -55,10 +59,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
         }
 
         return temp;
-    }
-
-    private String mangleName(String name) {
-        return reservedRegs.contains(name) ? "v_" + name : name;
     }
 
     private String getClassNameForObject(IR.token.Identifier obj) {
@@ -113,8 +113,10 @@ public class SparrowGenerator extends DepthFirstVisitor {
      */
     @Override
     public void visit(MainClass n) {
+        currentClass = "Main";
         currentInstructions = new ArrayList<>();
 
+        n.f14.accept(this);
         n.f15.accept(this);
 
         IR.token.Identifier returnId = getNewTemp("int");
@@ -136,7 +138,6 @@ public class SparrowGenerator extends DepthFirstVisitor {
     @Override
     public void visit(ClassDeclaration n) {
         currentClass = n.f1.f0.toString();
-        currentLayout = classLayouts.get(currentClass);
 
         n.f4.accept(this);
     }
@@ -199,10 +200,15 @@ public class SparrowGenerator extends DepthFirstVisitor {
         String name = currentClass + "_" + n.f2.f0.toString();
 
         Map<String, IR.token.Identifier> savedVarMap = new HashMap<>(varMap);
+        Map<String, String> savedVarTypeMap = new HashMap<>(varTypeMap);
+
+        varMap.clear();
+        varTypeMap.clear();
 
         List<IR.token.Identifier> params = new ArrayList<>();
 
         IR.token.Identifier thisParam = getNewTemp(currentClass);
+        varTypeMap.put(thisParam.toString(), currentClass);
         params.add(thisParam);
         varMap.put("this", thisParam);
 
@@ -229,6 +235,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         currentInstructions = savedInstructions;
         varMap = savedVarMap;
+        varTypeMap = savedVarTypeMap;
     }
 
     // -----------------
@@ -255,13 +262,15 @@ public class SparrowGenerator extends DepthFirstVisitor {
             return;
         }
 
-        int offset = currentLayout.getFieldOffset(varName);
-        IR.token.Identifier thisId = varMap.get("this");
-        if (thisId == null) {
-            thisId = new IR.token.Identifier("this");
-        }
+        if (!currentClass.equals("Main")) {
+            int offset = classLayouts.get(currentClass).getFieldOffset(varName);
+            IR.token.Identifier thisId = varMap.get("this");
+            if (thisId == null) {
+                thisId = new IR.token.Identifier("this");
+            }
 
-        currentInstructions.add(new Store(thisId, offset, rhs));
+            currentInstructions.add(new Store(thisId, offset, rhs));
+        }
     }
 
     /**
@@ -282,10 +291,12 @@ public class SparrowGenerator extends DepthFirstVisitor {
         IR.token.Identifier arr = varMap.get(name);
 
         if (arr == null) {
-            int offset = currentLayout.getFieldOffset(name);
-            arr = getNewTemp("arr");
-            currentInstructions.add(new Load(arr, varMap.get("this"), offset));
+                int offset = classLayouts.get(currentClass).getFieldOffset(name);
+                arr = getNewTemp("arr");
+                currentInstructions.add(new Load(arr, varMap.get("this"), offset));
         }
+
+        // checkNull(arr);
 
         n.f2.accept(this);
         IR.token.Identifier idx = lastResult;
@@ -515,6 +526,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f0.accept(this);
         IR.token.Identifier arr = lastResult;
 
+        // checkNull(arr);
+
         n.f2.accept(this);
         IR.token.Identifier idx = lastResult;
 
@@ -572,6 +585,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
         n.f0.accept(this);
         IR.token.Identifier arr = lastResult;
 
+        // checkNull(arr);
+
         IR.token.Identifier length = getNewTemp("int");
         currentInstructions.add(new Load(length, arr, 0));
 
@@ -590,6 +605,17 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(MessageSend n) {
         n.f0.accept(this);
         IR.token.Identifier classObj = lastResult;
+
+        Label nullError = new Label("nullErr_" + (labelCounter++));
+        Label success = new Label("success_" + (labelCounter++));
+        
+        currentInstructions.add(new IfGoto(classObj, nullError));
+        currentInstructions.add(new Goto(success));
+        
+        currentInstructions.add(new LabelInstr(nullError));
+        currentInstructions.add(new ErrorMessage("\"null pointer\""));
+        
+        currentInstructions.add(new LabelInstr(success));
 
         String className = getClassNameForObject(classObj);
 
@@ -667,12 +693,15 @@ public class SparrowGenerator extends DepthFirstVisitor {
             return;
         }
 
-        int offset = currentLayout.getFieldOffset(name);
-        String fieldType = currentLayout.getFieldType(name);
+        int offset = classLayouts.get(currentClass).getFieldOffset(name);
+        String fieldType = classLayouts.get(currentClass).getFieldType(name);
         IR.token.Identifier fieldVar = getNewTemp(fieldType);
         IR.token.Identifier base = varMap.get("this");
 
         currentInstructions.add(new Load(fieldVar, base, offset));
+
+        // checkNull(fieldVar);
+
         lastResult = fieldVar;
     }
 

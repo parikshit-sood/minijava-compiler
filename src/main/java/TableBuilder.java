@@ -1,9 +1,13 @@
 
 import java.util.HashMap;
 
+import minijava.syntaxtree.ArrayType;
+import minijava.syntaxtree.BooleanType;
 import minijava.syntaxtree.ClassDeclaration;
+import minijava.syntaxtree.IntegerType;
 import minijava.syntaxtree.MethodDeclaration;
 import minijava.syntaxtree.Node;
+import minijava.syntaxtree.NodeSequence;
 import minijava.syntaxtree.VarDeclaration;
 import minijava.visitor.DepthFirstVisitor;
 
@@ -14,6 +18,16 @@ public class TableBuilder extends DepthFirstVisitor {
 
     public HashMap<String, ClassLayout> getLayouts() {
         return layouts;
+    }
+
+    private String typeString(minijava.syntaxtree.Type tp) {
+        Node n = tp.f0.choice;
+
+        if (n instanceof BooleanType) return "boolean";
+        if (n instanceof IntegerType) return "int";
+        if ((n instanceof ArrayType) || (n instanceof NodeSequence)) return "arr";
+
+        return ((minijava.syntaxtree.Identifier) n).f0.toString();
     }
 
     @Override
@@ -27,7 +41,8 @@ public class TableBuilder extends DepthFirstVisitor {
         for (Node node : n.f3.nodes) {
             VarDeclaration var = (VarDeclaration) node;
             String fieldName = var.f1.f0.toString();
-            layout.setFieldOffset(fieldName, fOffset);
+            String fieldType = typeString(var.f0);
+            layout.addField(fieldName, fOffset, fieldType);
             fOffset += 4;
         }
 
@@ -36,7 +51,7 @@ public class TableBuilder extends DepthFirstVisitor {
         for (Node node: n.f4.nodes) {
             MethodDeclaration md = (MethodDeclaration) node;
             String methodName = currentClass + "_" + md.f2.f0.toString();
-            layout.setMethodOffset(methodName, mOffset);
+            layout.addMethod(methodName, mOffset);
             mOffset += 4;
         }
 
@@ -44,6 +59,4 @@ public class TableBuilder extends DepthFirstVisitor {
         layout.setVmtSize(mOffset);
         layouts.put(currentClass, layout);
     }
-
-    // TODO: Add support for inheritance
 }

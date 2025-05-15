@@ -1,22 +1,23 @@
 class test {
     public static void main(String[] args) {
-        int[] a;
-        int x;
-        boolean b;
-        boolean c;
-        int d;
-        b = true;
-        c = false;
-        x = 2;
+        A x;
+        int y;
+        x = new A();
+        y = x.foo();
+    }
+}
 
-        if (b && (!c)) {
-            a = new int[x];
-        } else {
-            a = new int[3];
-        }
+class A {
+    B x;
+    public int foo(){
+        int y;
+        y = x.bar();
+        return 1;
+    }
+}
 
-        d = 0;
-
-        System.out.println(a.length);
+class B {
+    public int bar() {
+        return 0;
     }
 }
