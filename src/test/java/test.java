@@ -1,23 +1,26 @@
 class test {
     public static void main(String[] args) {
         A x;
-        int y;
+        boolean op1;
+
         x = new A();
-        y = x.foo();
+        op1 = false;
+
+        if (op1 && x.foo()) {
+            System.out.println(1);
+        } else {
+            System.out.println(2);
+        }
     }
 }
 
 class A {
-    B x;
-    public int foo(){
-        int y;
-        y = x.bar();
-        return 1;
+    public boolean foo() {
+        System.out.println(3);
+        return true;
     }
 }
 
-class B {
-    public int bar() {
-        return 0;
-    }
-}
+// Shortcircuiting AND expression
+// print only 2 if shortcircuited
+// else, prints 3 then 2
