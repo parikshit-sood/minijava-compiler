@@ -68,6 +68,10 @@ public class ClassLayout {
         this.methodOffsets.put(method, offset);
     }
 
+    public void setField(String field, String type) {
+        this.fieldTypes.put(field, type);
+    }
+
     public void setObjSize(int sz) {
         this.objSize = sz;
     }
