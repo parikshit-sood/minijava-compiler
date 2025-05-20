@@ -67,4 +67,10 @@ public class TableBuilder extends DepthFirstVisitor {
         layout.setVmtSize(mOffset);
         layouts.put(currentClass, layout);
     }
+
+    // @Override
+    // public void visit(ClassExtendsDeclaration n) {
+    //     // Do nothing in this stage for extends relations
+    //     return;
+    // }
 }

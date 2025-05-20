@@ -1,22 +1,26 @@
-class test {
+class Main {
     public static void main(String[] args) {
-        A x;
-        boolean op1;
+        B b;
+        int y;
+        b = new B();
+        y = b.foo();
+    }
+}
 
-        x = new A();
-        op1 = false;
-
-        if (op1 && (x.foo())) {
-            System.out.println(1);
-        } else {
-            System.out.println(2);
-        }
+class B extends A {
+    int x;
+    public int bar() {
+        x = x + 1;
+        System.out.println(x);
+        return x;
     }
 }
 
 class A {
-    public boolean foo() {
-        System.out.println(3);
-        return true;
+    int x;
+
+    public int foo() {
+        System.out.println(x);
+        return x;
     }
 }
