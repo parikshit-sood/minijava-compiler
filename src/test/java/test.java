@@ -1,23 +1,26 @@
-// BasicOverride.mj
-class A {
-    public int f() {
-        return 1;
+class Main {
+    public static void main(String[] args) {
+        B b;
+        int y;
+        b = new B();
+        y = b.foo();
     }
 }
 
 class B extends A {
-    public int f() {
-        return 2;
+    int x;
+    public int bar() {
+        x = x + 1;
+        System.out.println(x);
+        return x;
     }
 }
 
-class Main {
-    public static void main(String[] args) {
-        A a;
-        B b;
-        a = new B();
-        b = new B();
-        System.out.println(a.f()); // Should print 2 (dynamic dispatch)
-        System.out.println(b.f()); // Should print 2
+class A {
+    int x;
+
+    public int foo() {
+        System.out.println(x);
+        return x;
     }
 }

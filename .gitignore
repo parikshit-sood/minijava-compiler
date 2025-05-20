@@ -111,3 +111,9 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Miscellaneous
+hw3/
+*sparrow
+*.java.*
+results/

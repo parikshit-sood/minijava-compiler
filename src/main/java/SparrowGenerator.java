@@ -157,6 +157,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(ClassDeclaration n) {
         currentClass = n.f1.f0.toString();
 
+        n.f3.accept(this);
         n.f4.accept(this);
     }
 
@@ -174,6 +175,7 @@ public class SparrowGenerator extends DepthFirstVisitor {
     public void visit(ClassExtendsDeclaration n) {
         currentClass = n.f1.f0.toString();
         
+        n.f5.accept(this);
         n.f6.accept(this);
     }
 
