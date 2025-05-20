@@ -88,6 +88,24 @@ public class SparrowGenerator extends DepthFirstVisitor {
         params.add(varId);
     }
 
+    private String findMethod(String className, String methodName) {
+        if (className == null)
+            return null;
+
+        ClassLayout layout = classLayouts.get(className);
+
+        if (layout == null)
+            return null;
+
+        for (String name : layout.getMethodOffsets().keySet()) {
+            if (name.endsWith("_" + methodName)) {
+                return name;
+            }
+        }
+
+        return findMethod(layout.getParent(), methodName);
+    }
+
     // -----------------
     // Classes
     // -----------------
@@ -640,7 +658,8 @@ public class SparrowGenerator extends DepthFirstVisitor {
             }
         }
 
-        int offset = classLayouts.get(className).getMethodOffset(className + "_" + n.f2.f0.toString());
+        String methodName = findMethod(className, n.f2.f0.toString());
+        int offset = classLayouts.get(className).getMethodOffset(methodName);
 
         IR.token.Identifier vmt = getNewTemp("int");
         currentInstructions.add(new Load(vmt, classObj, 0));
@@ -802,12 +821,16 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         currentInstructions.add(new IfGoto(result, nullErr));
 
-        List<String> fields = classObj.getFields();
         IR.token.Identifier zero = getNewTemp("int");
         currentInstructions.add(new Move_Id_Integer(zero, 0));
 
-        for (String fd: fields) {
-            int offset = classObj.getFieldOffset(fd);
+        Map<String, Integer> fieldOffsets = classObj.getFieldOffsets();
+        List<Map.Entry<String, Integer>> sortedFields = new ArrayList<>(fieldOffsets.entrySet());
+        sortedFields.sort(Map.Entry.comparingByValue());
+
+        for (Map.Entry<String, Integer> entry : sortedFields) {
+            // String fieldName = entry.getKey();
+            int offset = entry.getValue();
             currentInstructions.add(new Store(result, offset, zero));
         }
 
@@ -819,10 +842,11 @@ public class SparrowGenerator extends DepthFirstVisitor {
 
         currentInstructions.add(new IfGoto(vmt, nullErr));
 
-        List<String> methods = classObj.getMethods();
+        Map<String, Integer> methodOffsets = classObj.getMethodOffsets();
 
-        for (String methodName : methods) {
-            int offset = classObj.getMethodOffset(methodName);
+        for (Map.Entry<String, Integer> entry : methodOffsets.entrySet()) {
+            String methodName = entry.getKey();
+            int offset = entry.getValue();
             IR.token.Identifier methodLabel = getNewTemp(null);
             currentInstructions.add(new Move_Id_FuncName(methodLabel, new FunctionName(methodName)));
             currentInstructions.add(new Store(vmt, offset, methodLabel));

@@ -1,8 +1,14 @@
 
 import java.util.HashMap;
-import java.util.List;
 
-import minijava.syntaxtree.*;
+import minijava.syntaxtree.ArrayType;
+import minijava.syntaxtree.BooleanType;
+import minijava.syntaxtree.ClassExtendsDeclaration;
+import minijava.syntaxtree.IntegerType;
+import minijava.syntaxtree.MethodDeclaration;
+import minijava.syntaxtree.Node;
+import minijava.syntaxtree.NodeSequence;
+import minijava.syntaxtree.VarDeclaration;
 import minijava.visitor.DepthFirstVisitor;
 
 public class InheritanceResolver extends DepthFirstVisitor{
@@ -42,27 +48,26 @@ public class InheritanceResolver extends DepthFirstVisitor{
 
         thisLayout.setClassName(childName);
 
-        // Process child fields
+        // Process parent fields
         int fOffset = 4;
+        for (String pField : parentLayout.getFieldOffsets().keySet()) {
+            String pType = parentLayout.getFieldType(pField);
+            int pOffset = parentLayout.getFieldOffset(pField);
+            thisLayout.addField(pField, pOffset, pType);
+            if (pOffset + 4 > fOffset) {
+                fOffset = pOffset + 4;
+            }
+        }
 
+        // Process child fields
         for (Node node : n.f5.nodes) {
             VarDeclaration var = (VarDeclaration) node;
             String fieldName = var.f1.f0.toString();
             String fieldType = typeString(var.f0);
-            thisLayout.addField(fieldName, fOffset, fieldType);
-            fOffset += 4;
-        }
-
-        // Process parent fields
-        List<String> parentFields = parentLayout.getFields();
-
-        for (String pField : parentFields) {
-            if (thisLayout.hasField(pField)) {
-                continue;
+            if (!thisLayout.hasField(fieldName)) {
+                thisLayout.addField(fieldName, fOffset, fieldType);
+                fOffset += 4;
             }
-            String pType = parentLayout.getFieldType(pField);
-            thisLayout.addField(pField, fOffset, pType);
-            fOffset += 4;
         }
 
         // Process child methods
@@ -77,9 +82,7 @@ public class InheritanceResolver extends DepthFirstVisitor{
         }
 
         // Process parent methods
-        List<String> parentMethods = parentLayout.getMethods();
-
-        for (String pMethod : parentMethods) {
+        for (String pMethod : parentLayout.getMethodOffsets().keySet()) {
             String mName = pMethod.split("_")[1];
 
             if (thisLayout.hasMethod(childName + "_" + mName)) {
@@ -92,7 +95,14 @@ public class InheritanceResolver extends DepthFirstVisitor{
 
         thisLayout.setObjSize(fOffset);
         thisLayout.setVmtSize(mOffset);
+        thisLayout.setParent(parentName);
 
         layouts.put(childName, thisLayout);
     }
+
+    // @Override
+    // public void visit(ClassDeclaration n) {
+    //     // Does not add to inheritance resolution
+    //     return;
+    // }
 }

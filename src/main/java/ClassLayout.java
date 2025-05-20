@@ -1,13 +1,10 @@
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 public class ClassLayout {
     private String className;
-    private List<String> fields = new ArrayList<>();
-    private List<String> methods = new ArrayList<>();
+    private String parent = null;
     private Map<String, String> fieldTypes = new HashMap<>();
     private Map<String, Integer> fieldOffsets = new HashMap<>();
     private Map<String, Integer> methodOffsets = new HashMap<>();
@@ -30,9 +27,9 @@ public class ClassLayout {
         return fieldOffsets.containsKey(name);
     }
 
-    public List<String> getFields() { return fields; }
+    public Map<String, Integer> getFieldOffsets() { return fieldOffsets; }
 
-    public List<String> getMethods() { return methods; }
+    public Map<String, Integer> getMethodOffsets() { return methodOffsets; }
 
     public int getFieldOffset(String name) {
         return fieldOffsets.get(name);
@@ -50,6 +47,8 @@ public class ClassLayout {
 
     public int getVmtSize() { return vmtSize; }
 
+    public String getParent() { return parent; }
+
     /**
      * Setters
      */
@@ -58,13 +57,11 @@ public class ClassLayout {
     }
 
     public void addField(String field, int offset, String type) {
-        this.fields.add(field);
         this.fieldOffsets.put(field, offset);
         this.fieldTypes.put(field, type);
     }
 
     public void addMethod(String method, int offset) {
-        this.methods.add(method);
         this.methodOffsets.put(method, offset);
     }
 
@@ -77,4 +74,6 @@ public class ClassLayout {
     }
 
     public void setVmtSize(int sz) { this.vmtSize = sz; }
+
+    public void setParent(String name) { this.parent = name; }
 }

@@ -1,22 +1,23 @@
-class test {
-    public static void main(String[] args) {
-        A x;
-        boolean op1;
-
-        x = new A();
-        op1 = false;
-
-        if (op1 && (x.foo())) {
-            System.out.println(1);
-        } else {
-            System.out.println(2);
-        }
+// BasicOverride.mj
+class A {
+    public int f() {
+        return 1;
     }
 }
 
-class A {
-    public boolean foo() {
-        System.out.println(3);
-        return true;
+class B extends A {
+    public int f() {
+        return 2;
+    }
+}
+
+class Main {
+    public static void main(String[] args) {
+        A a;
+        B b;
+        a = new B();
+        b = new B();
+        System.out.println(a.f()); // Should print 2 (dynamic dispatch)
+        System.out.println(b.f()); // Should print 2
     }
 }
