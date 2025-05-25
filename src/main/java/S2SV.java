@@ -5,11 +5,15 @@ import IR.visitor.SparrowConstructor;
 public class S2SV {
     public static void main(String[] args) throws Exception {
         new SparrowParser(System.in);
-
         Node root = SparrowParser.Program();
-        SparrowConstructor constructor = new SparrowConstructor();
-        root.accept(constructor);
-        sparrow.Program program = constructor.getProgram();
-        System.err.println(program.toString());
+
+        // Process arguments into "a" registers
+        ArgsProcessor ap = new ArgsProcessor();
+        root.accept(ap);
+
+        // Calculate intervals and perform liveness analysis to prepare for register allocation
+        IntervalVisitor iv = new IntervalVisitor(ap.args);
+        FunctionStruct fs = new FunctionStruct();
+        root.accept(iv, fs);
     }
 }

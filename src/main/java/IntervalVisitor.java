@@ -7,11 +7,14 @@ import IR.visitor.GJVoidDepthFirst;
 public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
     Map<String, Map<String, Integer>> defs;   // function name -> variable name -> first def line number
     Map<String, Map<String, Integer>> uses;   // function name -> variable name -> last use line number
+    Map<String, Map<String, String>> args;  // function name -> variable name -> "a" register
+    Map<String, Map<String, Interval>> argsIntervals;   // function name -> variable name -> liveness interval
     int lineNum;
 
-    public IntervalVisitor() {
+    public IntervalVisitor(Map<String, Map<String, String>> argsProcessed) {
         defs = new HashMap<>();
         uses = new HashMap<>();
+        this.args = argsProcessed;
         lineNum = 1;
     }
 
@@ -26,7 +29,23 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      * @param lineNum : Line number of variable definition or usage
      */
     private void upsertId(String id, String funcName, int lineNum) {
-        // U`pdate the def and use maps for id
+        // Check if id an argument, live in "a" registers
+        if (args.get(funcName).containsKey(id)) {
+            if (!argsIntervals.get(funcName).containsKey(id)) {
+                // First instance of an argument, set interval bounds
+                argsIntervals.get(funcName).put(id, new Interval(lineNum, lineNum));
+            } else {
+                // Calculate new interval for this id
+                int earliest = Math.min(lineNum, argsIntervals.get(funcName).get(id).getEarliest());
+                int latest = Math.max(lineNum, argsIntervals.get(funcName).get(id).getLatest());
+
+                // Update interval mapping for id
+                argsIntervals.get(funcName).put(id, new Interval(earliest, latest));
+            }
+            return;
+        }
+
+        // Not an argument, update the def and use maps for id
         upsertDef(id, funcName, lineNum);
         upsertUse(id, funcName, lineNum);
     }
