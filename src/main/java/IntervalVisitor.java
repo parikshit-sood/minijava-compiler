@@ -1,21 +1,36 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import IR.syntaxtree.*;
 import IR.visitor.GJVoidDepthFirst;
 
 public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
-    Map<String, Map<String, Integer>> defs;   // function name -> variable name -> first def line number
-    Map<String, Map<String, Integer>> uses;   // function name -> variable name -> last use line number
-    Map<String, Map<String, String>> args;  // function name -> variable name -> "a" register
-    Map<String, Map<String, Interval>> argsIntervals;   // function name -> variable name -> liveness interval
+    Map<String, Map<String, Integer>> defs;   // function -> variable -> first def line number
+    Map<String, Map<String, Integer>> uses;   // function -> variable -> last use line number
+    Map<String, Map<String, String>> args;  // function -> variable -> "a" register
+    Map<String, Map<String, Interval>> argsIntervals;   // function -> variable -> liveness interval
+    Map<String, Map<String, Interval>> liveRange;   // function -> variable -> final liveness range
+    Map<String, Map<String, Interval>> argsLiveRange;   // function -> args variable -> final liveness range
+    Map<String, Map<String, String>> regs;  // function -> id -> register
+    Map<String, Map<String, String>> vars;  // function -> id -> variable
+    Map<String, Map<String, Integer>> labels;   // function -> label -> line number
+    List<Interval> loopArr;
     int lineNum;
 
     public IntervalVisitor(Map<String, Map<String, String>> argsProcessed) {
-        defs = new HashMap<>();
-        uses = new HashMap<>();
+        this.defs = new HashMap<>();
+        this.uses = new HashMap<>();
+        this.argsIntervals = new HashMap<>();
+        this.liveRange = new HashMap<>();
+        this.argsLiveRange = new HashMap<>();
+        this.regs = new HashMap<>();
+        this.vars = new HashMap<>();
+        this.labels = new HashMap<>();
+        this.loopArr = new ArrayList<>();
         this.args = argsProcessed;
-        lineNum = 1;
+        this.lineNum = 1;
     }
 
     // ---------------------
@@ -24,6 +39,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
 
     /**
      * Check liveness information for variable in all registers, update as needed
+     *
      * @param id : Name of variable
      * @param funcName : Name of function
      * @param lineNum : Line number of variable definition or usage
@@ -50,7 +66,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
         upsertUse(id, funcName, lineNum);
     }
 
-    /** Update the earliest line number for variable definition in the function
+    /**
+     * Update the earliest line number for variable definition in the function
      *
      * @param id : Name of variable
      * @param funcName : Name of function
@@ -62,7 +79,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
             defs.put(funcName, new HashMap<>());
         }
 
-        // Upsert the earliest line number for this id definition (lhs)
+        // Upsert the earliest line number for this id definition
         if (defs.get(funcName).containsKey(id)) {
             int earliest = Math.min(lineNum, defs.get(funcName).get(id));
             defs.get(funcName).put(id, earliest);
@@ -71,7 +88,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
         }
     }
 
-    /** Update the latest line number for variable usage in the function
+    /**
+     * Update the latest line number for variable usage in the function
      *
      * @param id : Name of variable
      * @param funcName : Name of function
@@ -83,13 +101,30 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
             uses.put(funcName, new HashMap<>());
         }
 
-        // Upsert the latest line number where this id is used (rhs)
+        // Upsert the latest line number where this id is used
         if (uses.get(funcName).containsKey(id)) {
             int latest = Math.max(lineNum, uses.get(funcName).get(id));
             uses.get(funcName).put(id, latest);
         } else {
             uses.get(funcName).put(id, lineNum);
         }
+    }
+
+    /**
+     * Add line number for each label in function
+     *
+     * @param label : Name of label
+     * @param funcName : Name of function
+     * @param lineNum : Line number of label
+     */
+    private void addLabel(String label, String funcName, int lineNum) {
+        // Check if first instance of this function
+        if (!labels.containsKey(funcName)) {
+            labels.put(funcName, new HashMap<>());
+        }
+
+        // Map line number of label
+        labels.get(funcName).put(label, lineNum);
     }
 
     // ---------------------
@@ -106,7 +141,31 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(FunctionDeclaration n, FunctionStruct f) {
-        // TODO
+        f.name = n.f1.f0.toString();
+
+        // Clear loop array
+        loopArr.clear();
+
+        // Track registers and variables for this function
+        regs.put(f.name, new HashMap<>());
+        vars.put(f.name, new HashMap<>());
+
+        // Track argument liveness intervals for this function
+        argsIntervals.put(f.name, new HashMap<>());
+
+        // Add preprocessed a2-a7 with line 0
+        if (n.f3.present()) {
+            while (n.f3.elements().hasMoreElements()) {
+                String paramName = ((Identifier)n.f3.elements()).f0.toString();
+                upsertId(paramName, f.name, 0);
+            }
+        }
+
+        // Process function statements
+        n.f5.accept(this, f);
+        lineNum = 1;
+
+        // TODO: Process registers and perform liveness analysis to calculate final ranges
     }
 
     /**
@@ -129,7 +188,9 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Instruction n, FunctionStruct f) {
-        // TODO
+        f.lineNumber = lineNum;
+        lineNum++;
+        n.f0.accept(this, f);
     }
 
     /**
@@ -139,7 +200,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(SetInteger n, FunctionStruct f) {
-        // TODO
+        String id = n.f0.f0.toString();
+        upsertId(id, f.name, f.lineNumber);
     }
 
     /**
@@ -150,7 +212,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(SetFuncName n, FunctionStruct f) {
-        // TODO
+        String id = n.f0.f0.toString();
+        upsertId(id, f.name, f.lineNumber);
     }
 
     /**
@@ -162,7 +225,14 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Add n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String op1 = n.f2.f0.toString();
+        upsertId(op1, f.name, f.lineNumber);
+
+        String op2 = n.f4.f0.toString();
+        upsertId(op2, f.name, f.lineNumber);
     }
 
     /**
@@ -174,7 +244,14 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Subtract n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String op1 = n.f2.f0.toString();
+        upsertId(op1, f.name, f.lineNumber);
+
+        String op2 = n.f4.f0.toString();
+        upsertId(op2, f.name, f.lineNumber);
     }
 
     /**
@@ -186,7 +263,14 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Multiply n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String op1 = n.f2.f0.toString();
+        upsertId(op1, f.name, f.lineNumber);
+
+        String op2 = n.f4.f0.toString();
+        upsertId(op2, f.name, f.lineNumber);
     }
 
     /**
@@ -198,7 +282,14 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(LessThan n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String op1 = n.f2.f0.toString();
+        upsertId(op1, f.name, f.lineNumber);
+
+        String op2 = n.f4.f0.toString();
+        upsertId(op2, f.name, f.lineNumber);
     }
 
     /**
@@ -212,7 +303,11 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Load n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String base = n.f3.f0.toString();
+        upsertId(base, f.name, f.lineNumber);
     }
 
     /**
@@ -226,7 +321,11 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Store n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f1.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String val = n.f6.f0.toString();
+        upsertId(val, f.name, f.lineNumber);
     }
 
     /**
@@ -236,7 +335,11 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Move n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String rhs = n.f2.f0.toString();
+        upsertId(rhs, f.name, f.lineNumber);
     }
 
     /**
@@ -249,7 +352,11 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Alloc n, FunctionStruct f) {
-        // TODO
+        String lhs = n.f0.f0.toString();
+        upsertId(lhs, f.name, f.lineNumber);
+
+        String bytes = n.f4.f0.toString();
+        upsertId(bytes, f.name, f.lineNumber);
     }
 
     /**
@@ -260,7 +367,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Print n, FunctionStruct f) {
-        // TODO
+        String id = n.f2.f0.toString();
+        upsertId(id, f.name, f.lineNumber);
     }
 
     /**
@@ -269,7 +377,14 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Goto n, FunctionStruct f) {
-        // TODO
+        String label = n.f1.f0.toString();
+
+        if (labels.containsKey(f.name) && labels.get(f.name).containsKey(label)) {
+            int gotoDest = labels.get(f.name).get(label);
+            if (gotoDest < f.lineNumber) {
+                loopArr.add(new Interval(gotoDest, f.lineNumber));
+            }
+        }
     }
 
     /**
@@ -280,7 +395,16 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(IfGoto n, FunctionStruct f) {
-        // TODO
+        String cond = n.f1.f0.toString();
+        upsertId(cond, f.name, f.lineNumber);
+
+        String label = n.f3.f0.toString();
+        if (labels.containsKey(f.name) && labels.get(f.name).containsKey(label)) {
+            int gotoDest = labels.get(f.name).get(label);
+            if (gotoDest < f.lineNumber) {
+                loopArr.add(new Interval(gotoDest, f.lineNumber));
+            }
+        }
     }
 
     /**
@@ -294,7 +418,13 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Call n, FunctionStruct f) {
-        // TODO
+        String res = n.f0.f0.toString();
+        upsertId(res, f.name, f.lineNumber);
+
+        String func = n.f3.f0.toString();
+        upsertId(func, f.name, f.lineNumber);
+
+        n.f5.accept(this, f);
     }
 
     /**
@@ -302,7 +432,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Label n, FunctionStruct f) {
-        // TODO
+        String name = n.f0.toString();
+        addLabel(name, f.name, f.lineNumber);
     }
 
     /**
@@ -310,6 +441,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
      */
     @Override
     public void visit(Identifier n, FunctionStruct f) {
-        // TODO
+        String name = n.f0.toString();
+        upsertId(name, f.name, f.lineNumber);
     }
 }
