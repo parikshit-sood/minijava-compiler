@@ -10,13 +10,13 @@ public class S2SV {
         ArgsProcessor ap = new ArgsProcessor();
         root.accept(ap);
 
-        // Calculate intervals and perform liveness analysis to prepare for register allocation
-        IntervalVisitor iv = new IntervalVisitor(ap.args);
+        // Calculate intervals and do register allocation
+        RegAlloc ra = new RegAlloc(ap.args);
         FunctionStruct fs = new FunctionStruct();
-        root.accept(iv, fs);
+        root.accept(ra, fs);
 
         // Translate from Sparrow to Sparrow-V
-        Translator tr = new Translator(iv.uses, iv.args, iv.regs, iv.vars, iv.liveRange, iv.argsLiveRange, iv.linearRegAlloc);
+        Translator tr = new Translator(ra.uses, ra.args, ra.regs, ra.vars, ra.liveRange, ra.argsLiveRange, ra.linearRegAlloc);
         fs = new FunctionStruct();
         root.accept(tr, fs);
 

@@ -3,7 +3,7 @@ import java.util.*;
 import IR.syntaxtree.*;
 import IR.visitor.GJVoidDepthFirst;
 
-public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
+public class RegAlloc extends GJVoidDepthFirst<FunctionStruct>{
     Map<String, Map<String, Integer>> defs;   // function -> variable -> first def line number
     Map<String, Map<String, Integer>> uses;   // function -> variable -> last use line number
     Map<String, Map<String, String>> args;  // function -> variable -> "a" register
@@ -17,7 +17,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
     List<Interval> loopArr;
     int lineNum;
 
-    public IntervalVisitor(Map<String, Map<String, String>> argsProcessed) {
+    public RegAlloc(Map<String, Map<String, String>> argsProcessed) {
         this.defs = new HashMap<>();
         this.uses = new HashMap<>();
         this.argsIntervals = new HashMap<>();
