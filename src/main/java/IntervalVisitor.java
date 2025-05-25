@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import IR.syntaxtree.*;
 import IR.visitor.GJVoidDepthFirst;
@@ -16,6 +13,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
     Map<String, Map<String, String>> regs;  // function -> id -> register
     Map<String, Map<String, String>> vars;  // function -> id -> variable
     Map<String, Map<String, Integer>> labels;   // function -> label -> line number
+    Map<String, Map<String, String>> linearRegAlloc;    // function -> variable -> register ... FINAL REGISTER ALLOCATION AFTER LINEAR SCANNING
     List<Interval> loopArr;
     int lineNum;
 
@@ -29,6 +27,7 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
         this.vars = new HashMap<>();
         this.labels = new HashMap<>();
         this.loopArr = new ArrayList<>();
+        this.linearRegAlloc = new HashMap<>();
         this.args = argsProcessed;
         this.lineNum = 1;
     }
@@ -52,8 +51,8 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
                 argsIntervals.get(funcName).put(id, new Interval(lineNum, lineNum));
             } else {
                 // Calculate new interval for this id
-                int earliest = Math.min(lineNum, argsIntervals.get(funcName).get(id).getEarliest());
-                int latest = Math.max(lineNum, argsIntervals.get(funcName).get(id).getLatest());
+                int earliest = Math.min(lineNum, argsIntervals.get(funcName).get(id).getStart());
+                int latest = Math.max(lineNum, argsIntervals.get(funcName).get(id).getEnd());
 
                 // Update interval mapping for id
                 argsIntervals.get(funcName).put(id, new Interval(earliest, latest));
@@ -165,7 +164,94 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
         n.f5.accept(this, f);
         lineNum = 1;
 
-        // TODO: Process registers and perform liveness analysis to calculate final ranges
+        // Do liveness analysis to calculate final ranges
+        Map<String, Interval> range = new HashMap<>();
+        Map<String, Interval> argsRange = new HashMap<>();
+        List<Interval> intervals = new ArrayList<>();
+
+        for (String id : defs.get(f.name).keySet()) {
+            int start = defs.get(f.name).get(id);
+            int end = uses.get(f.name).get(id);
+
+            for (Interval i : loopArr) {
+                if ((i.getStart() <= start && i.getEnd() >= start) || (i.getStart() <= end && i.getEnd() >= end)) {
+                    start = Math.min(start, i.getStart());
+                    end = Math.max(end, i.getEnd());
+                }
+            }
+
+            intervals.add(new Interval(start, -1, id, 0));
+            intervals.add(new Interval(-1, end, id, 1));
+            range.put(id, new Interval(start, end));
+        }
+
+        // Liveness analysis for arguments
+        for (String id : argsIntervals.get(f.name).keySet()) {
+            int start = argsIntervals.get(f.name).get(id).getStart();
+            int end = argsIntervals.get(f.name).get(id).getEnd();
+
+            for (Interval i : loopArr) {
+                if ((i.getStart() <= start && i.getEnd() >= start) || (i.getStart() <= end && i.getEnd() >= end)) {
+                    start = Math.min(start, i.getStart());
+                    end = Math.max(end, i.getEnd());
+                }
+            }
+
+            argsRange.put(id, new Interval(start, end));
+        }
+
+        liveRange.put(f.name, range);
+        argsLiveRange.put(f.name, argsRange);
+
+        // Sort live ranges intervals by starting line
+        intervals.sort(Interval.comparator);
+
+        Deque<String> availableRegs = new ArrayDeque<>(
+                Arrays.asList("t0", "t1", "t2", "t3", "t4", "t5", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"));
+
+        Map<String, String> tempAssignment = new HashMap<>();
+        Map<String, String> assignment = new HashMap<>();
+
+        for (Interval i : intervals) {
+            if (i.type == 1) {
+                // Process end of liveness interval for variable id
+                if (tempAssignment.containsKey(i.id)) {
+                    // Transfer temp assignment into permanent assignment, free allocated register
+                    assignment.put(i.id, tempAssignment.get(i.id));
+                    availableRegs.add(tempAssignment.get(i.id));
+                    tempAssignment.remove(i.id);
+                }
+            } else {
+                if (!availableRegs.isEmpty()) {
+                    // Greedily allocate temp register to id
+
+                    tempAssignment.put(i.id, availableRegs.poll());
+                } else {
+                    // Find longest temp assignment and spill that into memory
+
+                    int otherEnd = range.get(i.id).getEnd();
+                    String otherId = i.id;
+
+                    for (String other : tempAssignment.keySet()) {
+                        int compEnd = range.get(other).getEnd();
+                        if (compEnd > otherEnd) {
+                            otherEnd = compEnd;
+                            otherId = other;
+                        }
+                    }
+
+                    if (!otherId.equals(i.id)) {
+                        String otherReg = tempAssignment.get(otherId);
+                        tempAssignment.remove(otherId);
+                        tempAssignment.put(i.id, otherReg);
+                    }
+                }
+            }
+        }
+
+        // Make remaining temp assignments permanent and store register allocations for current function
+        assignment.putAll(tempAssignment);
+        linearRegAlloc.put(f.name, assignment);
     }
 
     /**
