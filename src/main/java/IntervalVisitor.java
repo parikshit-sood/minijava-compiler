@@ -19,11 +19,63 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
     // Helper functions
     // ---------------------
 
+    /**
+     * Check liveness information for variable in all registers, update as needed
+     * @param id : Name of variable
+     * @param funcName : Name of function
+     * @param lineNum : Line number of variable definition or usage
+     */
+    private void upsertId(String id, String funcName, int lineNum) {
+        // U`pdate the def and use maps for id
+        upsertDef(id, funcName, lineNum);
+        upsertUse(id, funcName, lineNum);
+    }
+
+    /** Update the earliest line number for variable definition in the function
+     *
+     * @param id : Name of variable
+     * @param funcName : Name of function
+     * @param lineNum : Line number of variable definition
+     */
+    private void upsertDef(String id, String funcName, int lineNum) {
+        // Check if first instance of this function
+        if (!defs.containsKey(funcName)) {
+            defs.put(funcName, new HashMap<>());
+        }
+
+        // Upsert the earliest line number for this id definition (lhs)
+        if (defs.get(funcName).containsKey(id)) {
+            int earliest = Math.min(lineNum, defs.get(funcName).get(id));
+            defs.get(funcName).put(id, earliest);
+        } else {
+            defs.get(funcName).put(id, lineNum);
+        }
+    }
+
+    /** Update the latest line number for variable usage in the function
+     *
+     * @param id : Name of variable
+     * @param funcName : Name of function
+     * @param lineNum : Line number of variable use
+     */
+    private void upsertUse(String id, String funcName, int lineNum) {
+        // Check if first instance of this function
+        if (!uses.containsKey(funcName)) {
+            uses.put(funcName, new HashMap<>());
+        }
+
+        // Upsert the latest line number where this id is used (rhs)
+        if (uses.get(funcName).containsKey(id)) {
+            int latest = Math.max(lineNum, uses.get(funcName).get(id));
+            uses.get(funcName).put(id, latest);
+        } else {
+            uses.get(funcName).put(id, lineNum);
+        }
+    }
+
     // ---------------------
     // Core functions
     // ---------------------
-
-
 
     /**
      * f0 -> "func"
