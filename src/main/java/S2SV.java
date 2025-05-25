@@ -1,6 +1,5 @@
 import IR.SparrowParser;
 import IR.syntaxtree.Node;
-import IR.visitor.SparrowConstructor;
 
 public class S2SV {
     public static void main(String[] args) throws Exception {
@@ -15,5 +14,12 @@ public class S2SV {
         IntervalVisitor iv = new IntervalVisitor(ap.args);
         FunctionStruct fs = new FunctionStruct();
         root.accept(iv, fs);
+
+        // Translate from Sparrow to Sparrow-V
+        Translator tr = new Translator(iv.uses, iv.args, iv.regs, iv.vars, iv.liveRange, iv.argsLiveRange, iv.linearRegAlloc);
+        fs = new FunctionStruct();
+        root.accept(tr, fs);
+
+        // Print Sparrow-V program to System.err
     }
 }

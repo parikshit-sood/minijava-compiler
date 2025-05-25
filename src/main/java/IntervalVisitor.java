@@ -224,11 +224,9 @@ public class IntervalVisitor extends GJVoidDepthFirst<FunctionStruct>{
             } else {
                 if (!availableRegs.isEmpty()) {
                     // Greedily allocate temp register to id
-
                     tempAssignment.put(i.id, availableRegs.poll());
                 } else {
                     // Find longest temp assignment and spill that into memory
-
                     int otherEnd = range.get(i.id).getEnd();
                     String otherId = i.id;
 
