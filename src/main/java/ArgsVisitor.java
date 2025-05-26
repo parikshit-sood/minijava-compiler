@@ -7,7 +7,7 @@ import IR.syntaxtree.Identifier;
 import IR.visitor.DepthFirstVisitor;
 
 public class ArgsVisitor extends DepthFirstVisitor {
-    public Map<String, VarAlloc> funcVarAllocs = new HashMap<>();
+    public Map<String, VarAlloc> funcVarAllocs = new HashMap<>();       // function name -> variable allocations in function
 
     /**
      * f0 -> "func"
@@ -19,12 +19,14 @@ public class ArgsVisitor extends DepthFirstVisitor {
      */
     @Override
     public void visit(FunctionDeclaration n) {
+        // Get function name
         String funcName = n.f1.f0.toString();
 
         VarAlloc varAlloc = new VarAlloc();
         varAlloc.varRegMap = new HashMap<>();
         varAlloc.varOffsetMap = new HashMap<>();
 
+        // Use registers a2-a7 for allocating arguments
         int regNum = 2;
 
         if (n.f3.present()) {
@@ -38,6 +40,7 @@ public class ArgsVisitor extends DepthFirstVisitor {
             }
         }
 
+        // Store argument allocations for this function
         funcVarAllocs.put(funcName, varAlloc);
     }
 }
