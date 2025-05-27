@@ -11,7 +11,7 @@ public class S2SV {
         root.accept(av, new FunctionStruct());
 
         // Fast liveness analysis and register allocation
-        LivenessVisitor lv = new LivenessVisitor();
+        LivenessVisitor lv = new LivenessVisitor(av.aRegs);
         root.accept(lv, new FunctionStruct());
 
         // Generate SparrowV code

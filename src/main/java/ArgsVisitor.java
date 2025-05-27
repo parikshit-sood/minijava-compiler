@@ -7,10 +7,10 @@ import IR.syntaxtree.Identifier;
 import IR.visitor.GJVoidDepthFirst;
 
 public class ArgsVisitor extends GJVoidDepthFirst<FunctionStruct>{
-    Map<String, Map<String, String>> argRegs;
+    Map<String, Map<String, String>> aRegs;
 
     public ArgsVisitor() {
-        argRegs = new HashMap<>();
+        aRegs = new HashMap<>();
     }
 
     /**
@@ -25,7 +25,7 @@ public class ArgsVisitor extends GJVoidDepthFirst<FunctionStruct>{
     public void visit(FunctionDeclaration n, FunctionStruct f) {
         f.name = n.f1.f0.toString();
         
-        argRegs.put(f.name, new HashMap<>());
+        aRegs.put(f.name, new HashMap<>());
         int regNum = 2;
 
         if (n.f3.present()) {
@@ -33,7 +33,7 @@ public class ArgsVisitor extends GJVoidDepthFirst<FunctionStruct>{
                 String paramName = ((Identifier) n.f3.elementAt(i)).f0.toString();
                 
                 if (regNum <= 7)
-                    argRegs.get(f.name).put(paramName, "a" + regNum);
+                    aRegs.get(f.name).put(paramName, "a" + regNum);
 
                 regNum++;
             }
