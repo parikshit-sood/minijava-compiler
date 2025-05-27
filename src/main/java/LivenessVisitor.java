@@ -1,27 +1,12 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import IR.syntaxtree.Add;
-import IR.syntaxtree.Alloc;
-import IR.syntaxtree.Call;
-import IR.syntaxtree.FunctionDeclaration;
-import IR.syntaxtree.Goto;
-import IR.syntaxtree.Identifier;
-import IR.syntaxtree.IfGoto;
-import IR.syntaxtree.Instruction;
-import IR.syntaxtree.Label;
-import IR.syntaxtree.LabelWithColon;
-import IR.syntaxtree.LessThan;
-import IR.syntaxtree.Load;
-import IR.syntaxtree.Move;
-import IR.syntaxtree.Multiply;
-import IR.syntaxtree.Print;
-import IR.syntaxtree.SetFuncName;
-import IR.syntaxtree.SetInteger;
-import IR.syntaxtree.Store;
-import IR.syntaxtree.Subtract;
+import IR.syntaxtree.*;
 import IR.visitor.GJVoidDepthFirst;
 
 public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
@@ -154,6 +139,99 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
         lineNum = 1;
 
         // Liveness analysis
+        Map<String, Interval> tempRange = new HashMap<>();
+        Map<String, Interval> aTempRange = new HashMap<>();
+        List<Interval> intervals = new ArrayList<>();
+
+        for (String id : defs.get(f.name).keySet()) {
+            int first = defs.get(f.name).get(id);
+            int last = uses.get(f.name).get(id);
+
+            for (Interval i : loopIntervals) {
+                if ((i.getFirst() <= first && i.getLast() >= first) || (i.getFirst() <= last && i.getLast() >= last)) {
+                    first = Math.min(i.getFirst(), first);
+                    last = Math.max(i.getLast(), last);
+                }
+            }
+
+            intervals.add(new Interval(first, -1, id, false));
+            intervals.add(new Interval(-1, last, id, true));
+            tempRange.put(id, new Interval(first, last));
+        }
+
+        for (String id : aIntervals.get(f.name).keySet()) {
+            int first = aIntervals.get(f.name).get(id).getFirst();
+            int last = aIntervals.get(f.name).get(id).getLast();
+
+            for (Interval i : loopIntervals) {
+                if ((i.getFirst() <= first && i.getLast() >= first) || (i.getFirst() <= last && i.getLast() >= last)) {
+                    first = Math.min(i.getFirst(), first);
+                    last = Math.max(i.getLast(), last);
+                }
+            }
+
+            aTempRange.put(id, new Interval(first, last));
+        }
+
+        tsIntervals.put(f.name, tempRange);
+        aRanges.put(f.name, aTempRange);
+        
+        // Sort intervals by starting line number
+        intervals.sort(Interval.comparator);
+
+        Deque<String> availableRegs = new ArrayDeque<>(Arrays.asList("t0","t1","t2","t3","t4","t5","s1","s2","s3","s4","s5","s6","s7","s8"));
+
+        Map<String, String> tempAssignment = new HashMap<>();
+        Map<String, String> assignment = new HashMap<>();
+
+        for (Interval i : intervals) {
+            // Get variable id for this interval
+            String id = i.id;
+            
+            if (i.isEnd) {
+                // Interval ends
+                if (tempAssignment.containsKey(id)) {
+                    // If interval was assignmed to a register in temp assignment, make it permanent
+                    assignment.put(id, tempAssignment.get(id));
+                    
+                    // Make register available for new temp assignment
+                    availableRegs.add(tempAssignment.get(id));
+
+                    // Remove temp assignment
+                    tempAssignment.remove(id);
+                }
+            } else {
+                // Interval starts
+                if (!availableRegs.isEmpty()) {
+                    // Make temp assignment if possible
+                    tempAssignment.put(id, availableRegs.poll());
+                } else {
+                    // No registers available, must spill to memory
+                    int end = tempRange.get(id).getLast();
+                    int otherEnd = end;
+                    String otherId = id;
+
+                    // Find longest interval
+                    for (String other : tempAssignment.keySet()) {
+                        int e = tempRange.get(other).getLast();
+                        if (e > otherEnd) {
+                            otherEnd = e;
+                            otherId = other;
+                        }
+                    }
+
+                    if (!otherId.equals(id)) {
+                        // Spill id of longest interval to memory
+                        tempAssignment.put(id, tempAssignment.get(otherId));
+                        tempAssignment.remove(otherId);
+                    }
+                }
+            }
+        }
+
+        // Make all temp assignments permanent
+        assignment.putAll(tempAssignment);
+        linearRegAlloc.put(f.name, assignment);
     }
 
     /**
@@ -433,5 +511,14 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
     public void visit(Label n, FunctionStruct f) {
         String label = n.f0.toString();
         addLabel(f.name, label, f.lineNumber);
+    }
+
+    /**
+     * f0 -> <IDENTIFIER>
+     */
+    @Override
+    public void visit(Identifier n, FunctionStruct f) {
+        String id = n.f0.toString();
+        addID(f.name, id, f.lineNumber);
     }
 }
