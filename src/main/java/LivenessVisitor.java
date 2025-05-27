@@ -12,6 +12,7 @@ import IR.syntaxtree.Identifier;
 import IR.syntaxtree.IfGoto;
 import IR.syntaxtree.Instruction;
 import IR.syntaxtree.Label;
+import IR.syntaxtree.LabelWithColon;
 import IR.syntaxtree.LessThan;
 import IR.syntaxtree.Load;
 import IR.syntaxtree.Move;
@@ -176,6 +177,15 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
     @Override
     public void visit(Instruction n, FunctionStruct f) {
         f.lineNumber = lineNum++;
+        n.f0.accept(this, f);
+    }
+
+    /**
+     * f0 -> Label()
+     * f1 -> ":"
+     */
+    @Override
+    public void visit(LabelWithColon n, FunctionStruct f) {
         n.f0.accept(this, f);
     }
 
