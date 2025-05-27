@@ -179,7 +179,8 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
         // Sort intervals by starting line number
         intervals.sort(Interval.comparator);
 
-        Deque<String> availableRegs = new ArrayDeque<>(Arrays.asList("t0","t1","t2","t3","t4","t5","s1","s2","s3","s4","s5","s6","s7","s8"));
+        Deque<String> availableRegs = new ArrayDeque<>(
+            Arrays.asList("t0","t1","t2","t3","t4","t5","s1","s2","s3","s4","s5","s6","s7","s8"));  // Reserve s9-s11 registers as temps
 
         Map<String, String> tempAssignment = new HashMap<>();
         Map<String, String> assignment = new HashMap<>();

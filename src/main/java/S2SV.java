@@ -15,6 +15,11 @@ public class S2SV {
         root.accept(lv, new FunctionStruct());
 
         // Generate SparrowV code
-        Translator tr = new Translator();
+        Translator tr = new Translator(
+            lv.linearRegAlloc,
+            lv.aRegs
+        );
+
+        // System.out.println(root.accept(tr, new FunctionStruct()));
     }
 }
