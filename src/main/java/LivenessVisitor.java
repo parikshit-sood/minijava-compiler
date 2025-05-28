@@ -119,6 +119,9 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
     @Override
     public void visit(FunctionDeclaration n, FunctionStruct f) {
         f.name = n.f1.f0.toString();
+
+        defs.put(f.name, new HashMap<>());
+        uses.put(f.name, new HashMap<>());
         
         // Clear loop intervals for this function
         loopIntervals.clear();
@@ -143,7 +146,7 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
         Map<String, Interval> aTempRange = new HashMap<>();
         List<Interval> intervals = new ArrayList<>();
 
-        for (String id : defs.get(f.name).keySet()) {
+        for (String id : defs.get(f.name).keySet()) {       // defs.get(f.name)
             int first = defs.get(f.name).get(id);
             int last = uses.get(f.name).get(id);
 

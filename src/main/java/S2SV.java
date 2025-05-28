@@ -17,12 +17,19 @@ public class S2SV {
         LivenessVisitor lv = new LivenessVisitor(av.aRegs);
         root.accept(lv, new FunctionStruct());
 
-        // Generate SparrowV codes
+        // Generate SparrowV code
+        // Translator tr = new Translator(
+        //     lv.linearRegAlloc,
+        //     lv.aRegs,
+        //     lv.tsIntervals,
+        //     lv.aRanges
+        // );
+        // root.accept(tr);
 
         SparrowConstructor constructor = new SparrowConstructor();
         root.accept(constructor);
         sparrow.Program prog = constructor.getProgram();
-        Translator tr = new Translator();
+        TranslatorNoAlloc tr = new TranslatorNoAlloc();
         tr.visit(prog);
 
         System.out.println(tr.prog);
