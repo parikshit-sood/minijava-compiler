@@ -1,5 +1,8 @@
 import IR.SparrowParser;
 import IR.syntaxtree.Node;
+import IR.visitor.DepthFirstVisitor;
+import IR.visitor.SparrowConstructor;
+import sparrow.Program;
 
 public class S2SV {
     public static void main(String[] args) throws Exception {
@@ -14,15 +17,16 @@ public class S2SV {
         LivenessVisitor lv = new LivenessVisitor(av.aRegs);
         root.accept(lv, new FunctionStruct());
 
-        // Generate SparrowV code
-        Translator tr = new Translator(
-            lv.linearRegAlloc,
-            lv.aRegs,
-            lv.tsIntervals,
-            lv.aRanges
-        );
-        root.accept(tr);
+        // Generate SparrowV codes
 
-        System.out.println(tr.translate());
+        SparrowConstructor constructor = new SparrowConstructor();
+        root.accept(constructor);
+        sparrow.Program prog = constructor.getProgram();
+        Translator tr = new Translator();
+        tr.visit(prog);
+
+        System.out.println(tr.prog);
+
+        // System.out.println(tr.translate());
     }
 }
