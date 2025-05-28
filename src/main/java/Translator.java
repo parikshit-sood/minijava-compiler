@@ -1,22 +1,28 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import IR.syntaxtree.*;
+import IR.token.Register;
 import IR.token.FunctionName;
 import IR.token.Identifier;
-import IR.token.Register;
-import sparrow.visitor.DepthFirst;
-import sparrow.*;
-import sparrowv.*;
+import IR.visitor.DepthFirstVisitor;
 
-public class Translator extends DepthFirst{
-    private Map<String, Map<String, String>> linearRegAlloc;
-    private Map<String, Map<String, String>> aRegs;
-    private Map<String, Map<String, Integer>> spilledOffsets;
+public class Translator extends DepthFirstVisitor {
+    // Liveness information
+    private Map<String, Map<String, String>> linearRegAlloc;        // linear register allocation
+    private Map<String, Map<String, String>> aRegs;                 // argument "a" registers
+
+    // Sparrow-V translation states
     private String currentFunction;
     private List<sparrowv.Instruction> currentInstructions;
-    private sparrowv.Program program;
+    private List<sparrowv.FunctionDecl> functions;
+    private Identifier blockReturnID;
+    private static final String[] ARG_REGS = {"a2", "a3", "a4", "a5", "a6", "a7"};
+    private static final String[] CALLER_SAVED = {"t0", "t1", "t2", "t3", "t4", "t5"};
+    private static final String[] CALLEE_SAVED = {"s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"};
+    private int frameId;
+
 
     public Translator(
         Map<String, Map<String, String>> linear, 
@@ -24,20 +30,17 @@ public class Translator extends DepthFirst{
     ) {
         this.linearRegAlloc = linear;
         this.aRegs = aRegs;
-        this.spilledOffsets = new HashMap<>();
         this.currentInstructions = new ArrayList<>();
-        computeSpilledOffsets();
+        frameId = 0;
+    }
+
+    public String translate() {
+        return new sparrowv.Program(functions).toString();
     }
 
     // ------------------
     // Helper functions
     // ------------------
-
-    // Compute stack offsets for variables spilled into memory
-    private void computeSpilledOffsets() {
-        for (String funcName : linearRegAlloc.keySet())
-            spilledOffsets.put(funcName, new HashMap<>());
-    }
 
     private String getRegisterOrSpill(String id) {
         // Check "a" registers first
@@ -58,319 +61,634 @@ public class Translator extends DepthFirst{
         return getRegisterOrSpill(id).equals(id);
     }
 
-    private int getStackOffset(String id) {
-        if (!spilledOffsets.get(currentFunction).containsKey(id)) {
-            int offset = spilledOffsets.get(currentFunction).size() * 4;
-            spilledOffsets.get(currentFunction).put(id, offset);
+    private void saveCalleeRegisters(int frame) {
+        for (String reg : CALLEE_SAVED) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
         }
+    }
 
-        return spilledOffsets.get(currentFunction).get(id);
+    private void restoreCalleeRegisters(int frame) {
+        for (String reg : CALLEE_SAVED) {
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
+        }
+    }
+
+    private void saveCallerRegisters(int frame) {
+        for (String reg : CALLER_SAVED) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
+        }
+    }
+
+    private void restoreCallerRegisters(int frame) {
+        for (String reg : CALLER_SAVED) {
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
+        }
+    }
+
+    private void saveArgRegisters(int frame) {
+        for (String reg : ARG_REGS) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
+        }
+    }
+
+    private void restoreArgRegisters(int frame) {
+        for (String reg : ARG_REGS) {
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
+        }
     }
 
     // ------------------
     // Core functions
     // ------------------
 
+    /**
+     * f0 -> ( FunctionDeclaration() )*
+     * f1 -> <EOF>
+     */
     @Override
-    public void visit(sparrow.Program n) {
-        List<sparrowv.FunctionDecl> functions = new ArrayList<>();
-
-        for (sparrow.FunctionDecl fd : n.funDecls) {
-            sparrowv.FunctionDecl vFunc = visitFunction(fd);
-            functions.add(vFunc);
-        }
-
-        program = new sparrowv.Program(functions);
+    public void visit(Program n) {
+        // Build program with list of functions
+        functions = new ArrayList<>();
+        n.f0.accept(this);
     }
 
-    private sparrowv.FunctionDecl visitFunction(sparrow.FunctionDecl n) {
-        currentFunction = n.functionName.toString();
+    /**
+     * f0 -> "func"
+     * f1 -> FunctionName()
+     * f2 -> "("
+     * f3 -> ( Identifier() )*
+     * f4 -> ")"
+     * f5 -> Block()
+     */
+    @Override
+    public void visit(FunctionDeclaration n) {
+        // Store current function name
+        currentFunction = n.f1.f0.toString();
+        int myFrame = frameId++;
+
         currentInstructions = new ArrayList<>();
 
-        // Handle parameters not allocated to a2-a7
+        // Save callee-saved registers
+        saveCalleeRegisters(myFrame);
+
+        // Process function block
+        n.f5.accept(this);
+
+        // Restore callee-saved registers
+        restoreCalleeRegisters(myFrame);
+
+        // Process function parameters
         List<Identifier> params = new ArrayList<>();
-        for (int i = 0; i < n.formalParameters.size(); i++) {
-            if (i >= 6) {
-                params.add(n.formalParameters.get(i));
+        if (n.f3.present()) {
+            for (int i = 6; i < n.f3.size(); i++) {
+                String paramName = ((IR.syntaxtree.Identifier) n.f3.elementAt(i)).f0.toString();
+                params.add(new Identifier(paramName));
             }
         }
 
-        // Add callee-saved register saves
-        addCalleeSaveInstructions();
+        sparrowv.Block block = new sparrowv.Block(currentInstructions, blockReturnID);
 
-        // Visit all instructions in block
-        for (sparrow.Instruction instr : n.block.instructions) {
-            instr.accept(this);
+        functions.add(new sparrowv.FunctionDecl(
+            new FunctionName(currentFunction),
+            params,
+            block
+        ));
+    }
+
+    /**
+     * f0 -> ( Instruction() )*
+     * f1 -> "return"
+     * f2 -> Identifier()
+     */
+    @Override
+    public void visit(Block n) {
+        // Visit instructions
+        if (n.f0.present()) {
+            for (Node node : n.f0.nodes) {
+                node.accept(this);
+            }
         }
 
-        // Add callee-saved register restores
-        addCalleeRestoreInstructions();
+        // Process return identifier
+        String retId = getRegisterOrSpill(n.f2.f0.toString());
+        currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("v0"), new Register(retId)));
+        blockReturnID = new Identifier("v0");
+    }
 
-        // Handle return
-        String returnVar = n.block.return_id.toString();
-        String returnReg = handleReturnVariable(returnVar);
 
-        sparrowv.Block block = new sparrowv.Block(currentInstructions, new Identifier(returnReg));
+    /**
+     * f0 -> Label()
+     * f1 -> ":"
+     */
+    @Override
+    public void visit(LabelWithColon n) {
+        IR.token.Label label = new IR.token.Label(n.f0.f0.toString());
+
+        currentInstructions.add(new sparrowv.LabelInstr(label));
+    }
+
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> IntegerLiteral()
+     */
+    @Override
+    public void visit(SetInteger n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
         
-        return new sparrowv.FunctionDecl(new FunctionName(currentFunction), params, block);
-    }
-    
-    @Override
-    public void visit(sparrow.LabelInstr n) {
-        currentInstructions.add(new sparrowv.LabelInstr(n.label));
-    }
-
-    @Override
-    public void visit(sparrow.Move_Id_Integer n) {
-        String lhs = n.lhs.toString();
-
+        // Get register allocation
         String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
 
-        currentInstructions.add(new sparrowv.Move_Reg_Integer(new Register(lhsReg), n.rhs));
+        int val = Integer.parseInt(n.f2.f0.toString());
 
+        // Sparrow-V move integer into register
+        currentInstructions.add(new sparrowv.Move_Reg_Integer(new Register(lhsReg), val));
+
+        // Spill register value into identifier in memory (if id was not allocated to a non-temp register)
         if (isSpilled(lhs)) {
             currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> "@"
+     * f3 -> FunctionName()
+     */
     @Override
-    public void visit(sparrow.Move_Id_FuncName n) {
-        String lhs = n.lhs.toString();
+    public void visit(SetFuncName n) {
+        // Get identifier
+        String lhs = n.f0.f0.toString();
 
+        // Get register allocation
         String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
 
-        currentInstructions.add(new sparrowv.Move_Reg_FuncName(new Register(lhsReg), n.rhs));
+        // Sparrow-V Move_Reg_FuncName instruction
+        currentInstructions.add(new sparrowv.Move_Reg_FuncName(new Register(lhsReg), new FunctionName(n.f3.f0.toString())));
 
+        // Spill into memory if no register allocated
         if (isSpilled(lhs)) {
             currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Identifier()
+     * f3 -> "+"
+     * f4 -> Identifier()
+     */
     @Override
-    public void visit(sparrow.Add n) {
-        String lhsVar = n.lhs.toString();
-        String arg1Var = n.arg1.toString();
-        String arg2Var = n.arg2.toString();
+    public void visit(Add n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String arg1 = n.f2.f0.toString();
+        String arg2 = n.f4.f0.toString();
 
-        String arg1Reg = getRegisterOrSpill(arg1Var);
-        String arg2Reg = getRegisterOrSpill(arg2Var);
+        // Get register allocations if they exist
+        String arg1Reg = getRegisterOrSpill(arg1);
+        String arg2Reg = getRegisterOrSpill(arg2);
 
-        if (isSpilled(arg1Var)) {
+        // Use temp register s9
+        if (isSpilled(arg1)) {
             arg1Reg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1)));
         }
-        
-        if (isSpilled(arg2Var)) {
+
+        // Use temp register s10
+        if (isSpilled(arg2)) {
             arg2Reg = "s10";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2)));
         }
 
-        String lhsReg = isSpilled(lhsVar) ? "s11" : getRegisterOrSpill(lhsVar);
+        // Use temp register s11
+        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
 
+        // Sparrow-V Add instruction
         currentInstructions.add(new sparrowv.Add(new Register(lhsReg), new Register(arg1Reg), new Register(arg2Reg)));
 
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Move back to identifier is lhs spilled
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Identifier()
+     * f3 -> "-"
+     * f4 -> Identifier()
+     */
     @Override
-    public void visit(sparrow.Subtract n) {
-        String lhsVar = n.lhs.toString();
-        String arg1Var = n.arg1.toString();
-        String arg2Var = n.arg2.toString();
+    public void visit(Subtract n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String arg1 = n.f2.f0.toString();
+        String arg2 = n.f4.f0.toString();
 
-        String arg1Reg = getRegisterOrSpill(arg1Var);
-        String arg2Reg = getRegisterOrSpill(arg2Var);
+        // Get register allocations if they exist
+        String arg1Reg = getRegisterOrSpill(arg1);
+        String arg2Reg = getRegisterOrSpill(arg2);
 
-        if (isSpilled(arg1Var)) {
+        // Use temp register s9
+        if (isSpilled(arg1)) {
             arg1Reg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1)));
         }
-        
-        if (isSpilled(arg2Var)) {
+
+        // Use temp register s10
+        if (isSpilled(arg2)) {
             arg2Reg = "s10";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2)));
         }
 
-        String lhsReg = isSpilled(lhsVar) ? "s11" : getRegisterOrSpill(lhsVar);
+        // Use temp register s11
+        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
 
+        // Sparrow-V Subtract instruction
         currentInstructions.add(new sparrowv.Subtract(new Register(lhsReg), new Register(arg1Reg), new Register(arg2Reg)));
 
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Move back to identifier is lhs spilled
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Identifier()
+     * f3 -> "*"
+     * f4 -> Identifier()
+     */
     @Override
-    public void visit(sparrow.Multiply n) {
-        String lhsVar = n.lhs.toString();
-        String arg1Var = n.arg1.toString();
-        String arg2Var = n.arg2.toString();
+    public void visit(Multiply n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String arg1 = n.f2.f0.toString();
+        String arg2 = n.f4.f0.toString();
 
-        String arg1Reg = getRegisterOrSpill(arg1Var);
-        String arg2Reg = getRegisterOrSpill(arg2Var);
+        // Get register allocations if they exist
+        String arg1Reg = getRegisterOrSpill(arg1);
+        String arg2Reg = getRegisterOrSpill(arg2);
 
-        if (isSpilled(arg1Var)) {
+        // Use temp register s9
+        if (isSpilled(arg1)) {
             arg1Reg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1)));
         }
-        
-        if (isSpilled(arg2Var)) {
+
+        // Use temp register s10
+        if (isSpilled(arg2)) {
             arg2Reg = "s10";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2)));
         }
 
-        String lhsReg = isSpilled(lhsVar) ? "s11" : getRegisterOrSpill(lhsVar);
+        // Use temp register s11
+        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
 
+        // Sparrow-V Multiply instruction
         currentInstructions.add(new sparrowv.Multiply(new Register(lhsReg), new Register(arg1Reg), new Register(arg2Reg)));
 
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Move back to identifier is lhs spilled
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Identifier()
+     * f3 -> "<"
+     * f4 -> Identifier()
+     */
     @Override
-    public void visit(sparrow.LessThan n) {
-        String lhsVar = n.lhs.toString();
-        String arg1Var = n.arg1.toString();
-        String arg2Var = n.arg2.toString();
+    public void visit(LessThan n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String arg1 = n.f2.f0.toString();
+        String arg2 = n.f4.f0.toString();
 
-        String arg1Reg = getRegisterOrSpill(arg1Var);
-        String arg2Reg = getRegisterOrSpill(arg2Var);
+        // Get register allocations if they exist
+        String arg1Reg = getRegisterOrSpill(arg1);
+        String arg2Reg = getRegisterOrSpill(arg2);
 
-        if (isSpilled(arg1Var)) {
+        // Use temp register s9
+        if (isSpilled(arg1)) {
             arg1Reg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), new Identifier(arg1)));
         }
-        
-        if (isSpilled(arg2Var)) {
+
+        // Use temp register s10
+        if (isSpilled(arg2)) {
             arg2Reg = "s10";
-            currentInstructions.add(new Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2Var)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(arg2Reg), new Identifier(arg2)));
         }
 
-        String lhsReg = isSpilled(lhsVar) ? "s11" : getRegisterOrSpill(lhsVar);
+        // Use temp register s11
+        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
 
+        // Sparrow-V LessThan instruction
         currentInstructions.add(new sparrowv.LessThan(new Register(lhsReg), new Register(arg1Reg), new Register(arg2Reg)));
 
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Move back to identifier is lhs spilled
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> "["
+     * f3 -> Identifier()
+     * f4 -> "+"
+     * f5 -> IntegerLiteral()
+     * f6 -> "]"
+     */
     @Override
-    public void visit(sparrow.Load n) {
-        String lhsVar = n.lhs.toString();
-        String baseVar = n.base.toString();
+    public void visit(Load n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String base = n.f3.f0.toString();
 
-        String baseReg = getRegisterOrSpill(baseVar);
+        // Get register allocations
+        String baseReg = getRegisterOrSpill(base);
 
-        if (isSpilled(baseVar)) {
+        // Load spills from stack id into register
+        if (isSpilled(base)) {
             baseReg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(baseReg), new Identifier(baseVar)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(baseReg), new Identifier(base)));
         }
 
-        String lhsReg = isSpilled(lhsVar) ? "s10" : getRegisterOrSpill(lhsVar);
+        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
 
-        currentInstructions.add(new sparrowv.Load(new Register(lhsReg), new Register(baseReg), n.offset));
+        // Get load offset
+        int offset = Integer.parseInt(n.f5.f0.toString());
 
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Sparrow-V Load instruction
+        currentInstructions.add(new sparrowv.Load(new Register(lhsReg), new Register(baseReg), offset));
+
+        // Store result back into spilled variable
+        if (isSpilled(base)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> "["
+     * f1 -> Identifier()
+     * f2 -> "+"
+     * f3 -> IntegerLiteral()
+     * f4 -> "]"
+     * f5 -> "="
+     * f6 -> Identifier()
+     */
+    // TODO : Doesn't make sense that reg + 4 is being used, and then I just do id = reg? how did the value end up in id?
     @Override
-    public void visit(sparrow.Store n) {
-        String rhsVar = n.rhs.toString();
-        String baseVar = n.base.toString();
+    public void visit(Store n) {
+        // Get identifiers
+        String base = n.f1.f0.toString();
+        String rhs = n.f6.f0.toString();
 
-        String rhsReg = getRegisterOrSpill(rhsVar);
+        // Get register allocations
+        String rhsReg = getRegisterOrSpill(rhs);
 
-        if (isSpilled(rhsReg)) {
+        if (isSpilled(rhs)) {
             rhsReg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(rhsReg), new Identifier(rhsVar)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(rhsReg), new Identifier(rhs)));
         }
 
-        String baseReg = isSpilled(baseVar) ? "s10" : getRegisterOrSpill(baseVar);
+        String baseReg = isSpilled(base) ? "s10" : getRegisterOrSpill(base);
 
-        currentInstructions.add(new sparrowv.Store(new Register(baseReg), n.offset, new Register(rhsReg)));
+        // Get store offset
+        int offset = Integer.parseInt(n.f3.f0.toString());
 
-        if (isSpilled(baseVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(baseVar), new Register(baseReg)));
+        // Sparrow-V Store instruction
+        currentInstructions.add(new sparrowv.Store(new Register(baseReg), offset, new Register(rhsReg)));
+
+        // Handle base address spill
+        if (isSpilled(base)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(base), new Register(baseReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Identifier()
+     */
     @Override
-    public void visit(sparrow.Move_Id_Id n) {
-        String lhsVar = n.lhs.toString();
-        String rhsVar = n.rhs.toString();
+    public void visit(Move n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String rhs = n.f2.f0.toString();
 
-        String lhsReg = getRegisterOrSpill(lhsVar);
-        String rhsReg = getRegisterOrSpill(rhsVar);
+        // Get register allocation
+        String rhsReg = getRegisterOrSpill(rhs);
 
-        if (isSpilled(rhsReg)) {
+        // Load spilled variable into temp register
+        if (isSpilled(rhs)) {
             rhsReg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(rhsReg), new Identifier(rhsVar)));
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(rhsReg), new Identifier(rhs)));
         }
 
-        if (isSpilled(lhsReg)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(rhsReg)));
-        } else {
-            currentInstructions.add(new Move_Reg_Reg(new Register(lhsReg), new Register(rhsReg)));
-        }
-    }
+        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
 
-    @Override
-    public void visit(sparrow.Alloc n) {
-        String lhsVar = n.lhs.toString();
-        String rhsVar = n.size.toString();
+        // Sparrow-V Move instruction
+        currentInstructions.add(new sparrowv.Move_Reg_Reg(new Register(lhsReg), new Register(rhsReg)));
 
-        String rhsReg = getRegisterOrSpill(rhsVar);
-
-        if (isSpilled(rhsVar)) {
-            rhsReg = "s9";
-            currentInstructions.add(new Move_Reg_Id(new Register(rhsReg), new Identifier(rhsVar)));
-        }
-
-        String lhsReg = isSpilled(lhsVar) ? "s10" : getRegisterOrSpill(lhsVar);
-
-        currentInstructions.add(new sparrowv.Alloc(new Register(lhsReg), new Register(rhsReg)));
-
-        if (isSpilled(lhsVar)) {
-            currentInstructions.add(new Move_Id_Reg(new Identifier(lhsVar), new Register(lhsReg)));
+        // Load temp register into spilled lhs variable
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
         }
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> "alloc"
+     * f3 -> "("
+     * f4 -> Identifier()
+     * f5 -> ")"
+     */
     @Override
-    public void visit(sparrow.Print n) {
-        String id = n.content.toString();
+    public void visit(Alloc n) {
+        // Get identifiers
+        String lhs = n.f0.f0.toString();
+        String size = n.f4.f0.toString();
 
-        String idReg = isSpilled(id) ? "s9" : getRegisterOrSpill(id);
+        // Get register allocation
+        String sizeReg = getRegisterOrSpill(size);
 
+        // Handle spills
+        if (isSpilled(size)) {
+            sizeReg = "s9";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(sizeReg), new Identifier(size)));
+        }
+
+        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
+
+        // Sparrow-V Alloc instruction
+        currentInstructions.add(new sparrowv.Alloc(new Register(lhsReg), new Register(sizeReg)));
+
+        // Handle lhs spill
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
+        }
+    }
+
+    /**
+     * f0 -> "print"
+     * f1 -> "("
+     * f2 -> Identifier()
+     * f3 -> ")"
+     */
+    @Override
+    public void visit(Print n) {
+        // Get identifiers
+        String id = n.f2.f0.toString();
+
+        // Get register allocation
+        String idReg = getRegisterOrSpill(id);
+
+        // Handle spilled identifier
+        if (isSpilled(id)) {
+            idReg = "s9";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(idReg), new Identifier(id)));
+        }
+
+        // Sparrow-V Print instruction
         currentInstructions.add(new sparrowv.Print(new Register(idReg)));
     }
 
+    /**
+     * f0 -> "error"
+     * f1 -> "("
+     * f2 -> StringLiteral()
+     * f3 -> ")"
+     */
     @Override
-    public void visit(sparrow.ErrorMessage n) {
-        currentInstructions.add(new sparrowv.ErrorMessage(n.msg));
+    public void visit(ErrorMessage n) {
+        // Sparrow-V ErrorMessage instruction
+        currentInstructions.add(new sparrowv.ErrorMessage(n.f2.f0.toString()));
     }
 
+    /**
+     * f0 -> "goto"
+     * f1 -> Label()
+     */
     @Override
-    public void visit(sparrow.Goto n) {
-        currentInstructions.add(new sparrowv.LabelInstr(n.label));
+    public void visit(Goto n) {
+        // Create new label
+        IR.token.Label label = new IR.token.Label(n.f1.f0.toString());
+
+        // Sparrow-V Goto instruction
+        currentInstructions.add(new sparrowv.Goto(label));
     }
 
+    /**
+     * f0 -> "if0"
+     * f1 -> Identifier()
+     * f2 -> "goto"
+     * f3 -> Label()
+     */
     @Override
-    public void visit(sparrow.IfGoto n) {
-        String condVar = n.condition.toString();
-        
-        String condReg = isSpilled(condVar) ? "s9" : getRegisterOrSpill(condVar);
+    public void visit(IfGoto n) {
+        // Get condition identifier
+        String cond = n.f1.f0.toString();
 
-        currentInstructions.add(new sparrowv.IfGoto(new Register(condReg), n.label));
+        // Get register allocation
+        String condReg = getRegisterOrSpill(cond);
+
+        if (isSpilled(cond)) {
+            condReg = "s9";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(condReg), new Identifier(cond)));
+        }
+
+        // Create new label
+        IR.token.Label label = new IR.token.Label(n.f3.f0.toString());
+
+        // Sparrow-V IfGoto instruction
+        currentInstructions.add(new sparrowv.IfGoto(new Register(condReg), label));
     }
 
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> "call"
+     * f3 -> Identifier()
+     * f4 -> "("
+     * f5 -> ( Identifier() )*
+     * f6 -> ")"
+     */
+    // TODO
     @Override
-    public void visit(sparrow.Call n) {
-        // TODO
+    public void visit(Call n) {
+        // Get result identifier
+        String lhs = n.f0.f0.toString();
+        String callee = n.f3.f0.toString();
+
+        int callFrame = frameId++;
+
+        // Save caller registers and arg registers
+        saveCallerRegisters(callFrame);
+        saveArgRegisters(callFrame);
+
+        // Process call arguments, handle spills
+        List<Identifier> stackArgs = new ArrayList<>();
+        int argIdx = 2;
+
+        if (n.f5.present()) {
+            for (Node node : n.f5.nodes) {
+                String arg = ((IR.syntaxtree.Identifier) node).f0.toString();
+
+                if (argIdx <= 7) {
+                    String argReg = "a" + argIdx;
+                    String srcReg = getRegisterOrSpill(arg);
+
+                    if (isSpilled(arg)) {
+                        srcReg = "s9";
+                        currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(srcReg), new Identifier(arg)));
+                    }
+                    currentInstructions.add(new sparrowv.Move_Reg_Reg(new Register(argReg), new Register(srcReg)));
+                } else {
+                    stackArgs.add(new Identifier(arg));
+                }
+
+                argIdx++;
+            }
+        }
+
+        // Move callee to register is spilled
+        String calleeReg = getRegisterOrSpill(callee);
+        if (isSpilled(callee)) {
+            calleeReg = "s9";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), new Identifier(callee)));
+        }
+
+        String lhsReg = getRegisterOrSpill(lhs);
+
+        if (isSpilled(lhs)) {
+            lhsReg = "s10";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(lhsReg), new Identifier(lhs)));
+        }
+
+        // Sparrow-V Call instruction
+        currentInstructions.add(new sparrowv.Call(new Register(lhsReg), new Register(calleeReg), stackArgs));
+
+        // Move result to lhs in case of spill
+        if (isSpilled(lhs)) {
+            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier(lhs), new Register(lhsReg)));
+        }
+
+        // Restore caller registers and arg registers
+        restoreCallerRegisters(callFrame);
+        restoreArgRegisters(callFrame);
     }
 }

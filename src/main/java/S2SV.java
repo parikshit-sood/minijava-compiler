@@ -19,7 +19,8 @@ public class S2SV {
             lv.linearRegAlloc,
             lv.aRegs
         );
+        root.accept(tr);
 
-        // System.out.println(root.accept(tr, new FunctionStruct()));
+        System.out.println(tr.translate());
     }
 }
