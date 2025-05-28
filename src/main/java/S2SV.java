@@ -17,7 +17,9 @@ public class S2SV {
         // Generate SparrowV code
         Translator tr = new Translator(
             lv.linearRegAlloc,
-            lv.aRegs
+            lv.aRegs,
+            lv.tsIntervals,
+            lv.aRanges
         );
         root.accept(tr);
 

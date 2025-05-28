@@ -1,6 +1,10 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import IR.syntaxtree.*;
 import IR.token.Register;
@@ -12,26 +16,34 @@ public class Translator extends DepthFirstVisitor {
     // Liveness information
     private Map<String, Map<String, String>> linearRegAlloc;        // linear register allocation
     private Map<String, Map<String, String>> aRegs;                 // argument "a" registers
+    private Map<String, Map<String, Interval>> liveRanges;          // live ranges of local variables
+    private Map<String, Map<String, Interval>> aLiveRanges;         // argument live ranges
 
     // Sparrow-V translation states
     private String currentFunction;
     private List<sparrowv.Instruction> currentInstructions;
     private List<sparrowv.FunctionDecl> functions;
     private Identifier blockReturnID;
+    private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList("t0", "t1", "t2", "t3", "t4", "t5"));
+    private static final Set<String> CALLEE_SET = new HashSet<>(Arrays.asList("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"));     // save s9, s10, s11
     private static final String[] ARG_REGS = {"a2", "a3", "a4", "a5", "a6", "a7"};
-    private static final String[] CALLER_SAVED = {"t0", "t1", "t2", "t3", "t4", "t5"};
-    private static final String[] CALLEE_SAVED = {"s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"};
     private int frameId;
+    private int currLineNum;
 
 
     public Translator(
         Map<String, Map<String, String>> linear, 
-        Map<String, Map<String, String>> aRegs
+        Map<String, Map<String, String>> aRegs,
+        Map<String, Map<String, Interval>> liveRanges,
+        Map<String, Map<String, Interval>> aRanges
     ) {
         this.linearRegAlloc = linear;
         this.aRegs = aRegs;
         this.currentInstructions = new ArrayList<>();
+        this.liveRanges = liveRanges;
+        this.aLiveRanges = aRanges;
         frameId = 0;
+        currLineNum = 0;
     }
 
     public String translate() {
@@ -61,40 +73,26 @@ public class Translator extends DepthFirstVisitor {
         return getRegisterOrSpill(id).equals(id);
     }
 
-    private void saveCalleeRegisters(int frame) {
-        for (String reg : CALLEE_SAVED) {
-            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
+    private void saveRestore(Set<String> regs, int frame, boolean save) {
+        System.err.println((save?"SAVE ":"REST ")+currentFunction+
+                       " @frame"+frame+" -> "+regs);
+        for (String r : regs) {
+            Identifier slot = new Identifier("stack_" + frame + "_save_" + r);
+            if (save) {
+                currentInstructions.add(new sparrowv.Move_Id_Reg(slot, new Register(r)));
+            } else {
+                currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(r), slot));
+            }
         }
     }
 
-    private void restoreCalleeRegisters(int frame) {
-        for (String reg : CALLEE_SAVED) {
-            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
-        }
-    }
+    private boolean livesPast(String var, int pos) {
+        Interval iv = liveRanges.get(currentFunction).get(var);
 
-    private void saveCallerRegisters(int frame) {
-        for (String reg : CALLER_SAVED) {
-            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
+        if (iv == null) {
+            iv = aLiveRanges.get(currentFunction).get(var);
         }
-    }
-
-    private void restoreCallerRegisters(int frame) {
-        for (String reg : CALLER_SAVED) {
-            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
-        }
-    }
-
-    private void saveArgRegisters(int frame) {
-        for (String reg : ARG_REGS) {
-            currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("stack_" + frame + "_save_" + reg), new Register(reg)));
-        }
-    }
-
-    private void restoreArgRegisters(int frame) {
-        for (String reg : ARG_REGS) {
-            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(reg), new Identifier("stack_" + frame + "_save_" + reg)));
-        }
+        return iv != null && iv.getLast() > pos;
     }
 
     // ------------------
@@ -128,14 +126,21 @@ public class Translator extends DepthFirstVisitor {
 
         currentInstructions = new ArrayList<>();
 
+        Set<String> usedCallee = linearRegAlloc
+            .get(currentFunction)
+            .values()
+            .stream()
+            .filter(CALLEE_SET::contains)
+            .collect(Collectors.toSet());
+
         // Save callee-saved registers
-        saveCalleeRegisters(myFrame);
+        saveRestore(usedCallee, myFrame, true);
 
         // Process function block
         n.f5.accept(this);
 
         // Restore callee-saved registers
-        restoreCalleeRegisters(myFrame);
+        saveRestore(usedCallee, myFrame, false);
 
         // Process function parameters
         List<Identifier> params = new ArrayList<>();
@@ -173,6 +178,30 @@ public class Translator extends DepthFirstVisitor {
         String retId = getRegisterOrSpill(n.f2.f0.toString());
         currentInstructions.add(new sparrowv.Move_Id_Reg(new Identifier("v0"), new Register(retId)));
         blockReturnID = new Identifier("v0");
+    }
+
+    /**
+     * f0 -> LabelWithColon()
+     *       | SetInteger()
+     *       | SetFuncName()
+     *       | Add()
+     *       | Subtract()
+     *       | Multiply()
+     *       | LessThan()
+     *       | Load()
+     *       | Store()
+     *       | Move()
+     *       | Alloc()
+     *       | Print()
+     *       | ErrorMessage()
+     *       | Goto()
+     *       | IfGoto()
+     *       | Call()
+     */
+    @Override
+    public void visit(Instruction n) {
+        currLineNum++;
+        n.f0.accept(this);
     }
 
 
@@ -634,11 +663,56 @@ public class Translator extends DepthFirstVisitor {
         String lhs = n.f0.f0.toString();
         String callee = n.f3.f0.toString();
 
+        // Get lhs register
+        String lhsReg = getRegisterOrSpill(lhs);
+
+        if (isSpilled(lhs)) {
+            lhsReg = "s10";
+            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(lhsReg), new Identifier(lhs)));
+        }
+
+        int beforeCallLine = currLineNum;
+
+        // Find live caller registers
+        Map<String, String> locals = linearRegAlloc.get(currentFunction);
+        Set<String> liveCaller = new HashSet<>();
+
+        for (Map.Entry<String, String> e : locals.entrySet()) {
+            String var = e.getKey(), reg = e.getValue();
+
+            // Only consider t0-t5
+            if (!CALLER_SET.contains(reg)) 
+                continue;
+
+            // Ignore lhs register
+            if (reg.equals(lhsReg))
+                continue;
+
+            if (livesPast(var, beforeCallLine)) {
+                liveCaller.add(reg);
+            }
+        }
+
+        // Find live arg registers
+        Set<String> liveArgs = new HashSet<>();
+
+        for (Map.Entry<String, String> e : aRegs.get(currentFunction).entrySet()) {
+            String var = e.getKey(), reg = e.getValue();
+
+            // Ignore lhs register
+            if (reg.equals(lhsReg))
+                continue;
+
+            if (livesPast(var, beforeCallLine)) {
+                liveArgs.add(reg);
+            }
+        }
+
         int callFrame = frameId++;
 
-        // Save caller registers and arg registers
-        saveCallerRegisters(callFrame);
-        saveArgRegisters(callFrame);
+        // Save caller and arg registers
+        saveRestore(liveCaller, callFrame, true);
+        saveRestore(liveArgs, callFrame, true);
 
         // Process call arguments, handle spills
         List<Identifier> stackArgs = new ArrayList<>();
@@ -672,13 +746,6 @@ public class Translator extends DepthFirstVisitor {
             currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), new Identifier(callee)));
         }
 
-        String lhsReg = getRegisterOrSpill(lhs);
-
-        if (isSpilled(lhs)) {
-            lhsReg = "s10";
-            currentInstructions.add(new sparrowv.Move_Reg_Id(new Register(lhsReg), new Identifier(lhs)));
-        }
-
         // Sparrow-V Call instruction
         currentInstructions.add(new sparrowv.Call(new Register(lhsReg), new Register(calleeReg), stackArgs));
 
@@ -688,7 +755,7 @@ public class Translator extends DepthFirstVisitor {
         }
 
         // Restore caller registers and arg registers
-        restoreCallerRegisters(callFrame);
-        restoreArgRegisters(callFrame);
+        saveRestore(liveCaller, callFrame, false);
+        saveRestore(liveArgs, callFrame, false);
     }
 }
