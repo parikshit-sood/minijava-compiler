@@ -45,8 +45,8 @@ public class TranslatorNoAlloc extends DepthFirst {
     int currLineNum;
 
     // Register sets
-    private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList("t0", "t1", "t2","t3","t4","t5"));
-    private static final Set<String> CALLEE_SET = new HashSet<>(Arrays.asList("s1","s2","s3","s4","s5","s6","s7","s8"));
+    private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList( "t2","t3","t4","t5"));
+    private static final Set<String> CALLEE_SET = new HashSet<>(Arrays.asList("s1","s2","s3","s4","s5","s6","s7","s8", "s9", "s10", "s11"));
     private static final Set<String> ARG_REGS = new HashSet<>(Arrays.asList("a2","a3","a4","a5","a6","a7"));
 
     private int frameId = 0;
@@ -149,7 +149,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     public void visit(Move_Id_Integer n) {
         currLineNum++;
         String lhs = n.lhs.toString();
-        String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
+        String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
 
         instructions.add(new sparrowv.Move_Reg_Integer(new Register(lhsReg), n.rhs));
 
@@ -162,7 +162,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     public void visit(Move_Id_FuncName n) {
         currLineNum++;
         String lhs = n.lhs.toString();
-        String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
+        String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
 
         instructions.add(new sparrowv.Move_Reg_FuncName(new Register(lhsReg), n.rhs));
 
@@ -177,9 +177,9 @@ public class TranslatorNoAlloc extends DepthFirst {
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
 
-        String arg1Reg = isSpilled(arg1) ? "s9" : getRegisterOrSpill(arg1);
-        String arg2Reg = isSpilled(arg2) ? "s10" : getRegisterOrSpill(arg2);
-        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
+        String arg1Reg = isSpilled(arg1) ? "t0" : getRegisterOrSpill(arg1);
+        String arg2Reg = isSpilled(arg2) ? "t1" : getRegisterOrSpill(arg2);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
         
         if (isSpilled(arg1))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), n.arg1));
@@ -200,9 +200,9 @@ public class TranslatorNoAlloc extends DepthFirst {
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
 
-        String arg1Reg = isSpilled(arg1) ? "s9" : getRegisterOrSpill(arg1);
-        String arg2Reg = isSpilled(arg2) ? "s10" : getRegisterOrSpill(arg2);
-        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
+        String arg1Reg = isSpilled(arg1) ? "t0" : getRegisterOrSpill(arg1);
+        String arg2Reg = isSpilled(arg2) ? "t1" : getRegisterOrSpill(arg2);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
         
         if (isSpilled(arg1))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), n.arg1));
@@ -223,9 +223,9 @@ public class TranslatorNoAlloc extends DepthFirst {
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
 
-        String arg1Reg = isSpilled(arg1) ? "s9" : getRegisterOrSpill(arg1);
-        String arg2Reg = isSpilled(arg2) ? "s10" : getRegisterOrSpill(arg2);
-        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
+        String arg1Reg = isSpilled(arg1) ? "t0" : getRegisterOrSpill(arg1);
+        String arg2Reg = isSpilled(arg2) ? "t1" : getRegisterOrSpill(arg2);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
         
         if (isSpilled(arg1))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), n.arg1));
@@ -246,9 +246,9 @@ public class TranslatorNoAlloc extends DepthFirst {
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
 
-        String arg1Reg = isSpilled(arg1) ? "s9" : getRegisterOrSpill(arg1);
-        String arg2Reg = isSpilled(arg2) ? "s10" : getRegisterOrSpill(arg2);
-        String lhsReg = isSpilled(lhs) ? "s11" : getRegisterOrSpill(lhs);
+        String arg1Reg = isSpilled(arg1) ? "t0" : getRegisterOrSpill(arg1);
+        String arg2Reg = isSpilled(arg2) ? "t1" : getRegisterOrSpill(arg2);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
         
         if (isSpilled(arg1))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(arg1Reg), n.arg1));
@@ -268,8 +268,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         String lhs = n.lhs.toString();
         String base = n.base.toString();
 
-        String baseReg = isSpilled(base) ? "s9" : getRegisterOrSpill(base);
-        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
+        String baseReg = isSpilled(base) ? "t0" : getRegisterOrSpill(base);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
         if (isSpilled(base))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(baseReg), n.base));
@@ -286,8 +286,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         String base = n.base.toString();
         String rhs = n.rhs.toString();
 
-        String rhsReg = isSpilled(rhs) ? "s9" : getRegisterOrSpill(rhs);
-        String baseReg = isSpilled(base) ? "s10" : getRegisterOrSpill(base);
+        String rhsReg = isSpilled(rhs) ? "t0" : getRegisterOrSpill(rhs);
+        String baseReg = isSpilled(base) ? "t1" : getRegisterOrSpill(base);
 
         if (isSpilled(rhs))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(rhsReg), n.rhs));
@@ -304,8 +304,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         String lhs = n.lhs.toString();
         String rhs = n.rhs.toString();
 
-        String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
-        String rhsReg = isSpilled(rhs) ? "s10" : getRegisterOrSpill(rhs);
+        String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
+        String rhsReg = isSpilled(rhs) ? "t1" : getRegisterOrSpill(rhs);
 
         if (isSpilled(rhs))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(rhsReg), n.rhs));
@@ -322,8 +322,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         String size = n.size.toString();
         String lhs = n.lhs.toString();
 
-        String sizeReg = isSpilled(size) ? "s9" : getRegisterOrSpill(size);
-        String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
+        String sizeReg = isSpilled(size) ? "t0" : getRegisterOrSpill(size);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
         if (isSpilled(size))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(sizeReg), n.size));
@@ -338,7 +338,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     public void visit(Print n) {
         currLineNum++;
         String content = n.content.toString();
-        String contentReg = isSpilled(content) ? "s9" : getRegisterOrSpill(content);
+        String contentReg = isSpilled(content) ? "t0" : getRegisterOrSpill(content);
 
         if (isSpilled(content))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(contentReg), n.content));
@@ -361,7 +361,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     public void visit(IfGoto n) {
         currLineNum++;
         String cond = n.condition.toString();
-        String condReg = isSpilled(cond) ? "s9" : getRegisterOrSpill(cond);
+        String condReg = isSpilled(cond) ? "t0" : getRegisterOrSpill(cond);
 
         if (isSpilled(cond))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(condReg), n.condition));
@@ -377,8 +377,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         String callee = n.callee.toString();
         String lhs = n.lhs.toString();
 
-        String calleeReg = isSpilled(callee) ? "s9" : getRegisterOrSpill(callee);
-        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
+        String calleeReg = isSpilled(callee) ? "t0" : getRegisterOrSpill(callee);
+        String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
         // Ignore registers that are not live (don't save)
         Set<String> ignoreRegs = new HashSet<>();
