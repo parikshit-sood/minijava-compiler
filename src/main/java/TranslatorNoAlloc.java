@@ -365,9 +365,19 @@ public class TranslatorNoAlloc extends DepthFirst {
         // saveRegisters(CALLER, myFrame, true);
         // saveRegisters(ARG, myFrame, true);
 
-        instructions.add(new sparrowv.Move_Reg_Id(new Register("t0"), n.callee));
-        instructions.add(new sparrowv.Call(new Register("t0"), new Register("t0"), n.args));
-        instructions.add(new sparrowv.Move_Id_Reg(n.lhs, new Register("t0")));
+        String callee = n.callee.toString();
+        String lhs = n.lhs.toString();
+
+        String calleeReg = isSpilled(callee) ? "s9" : getRegisterOrSpill(callee);
+        String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
+
+        if (isSpilled(callee))
+            instructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), n.callee));
+
+        instructions.add(new sparrowv.Call(new Register(lhsReg), new Register(calleeReg), n.args));
+
+        if (isSpilled(lhs))
+            instructions.add(new sparrowv.Move_Id_Reg(n.lhs, new Register(lhsReg)));
 
         // Restore all caller-saved and argument registers after call
         // saveRegisters(CALLER, myFrame, false);
