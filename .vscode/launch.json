@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "S2SV",
             "projectName": "cs132",
-            "args": "< testcases/hw4/strech.sparrow"
+            "args": "< testcases/hw4/Factorial.sparrow"
         }
     ]
 }

@@ -34,8 +34,8 @@ public class TranslatorNoAlloc extends DepthFirst {
     // Liveness information
     final private Map<String, Map<String, String>> linearRegAlloc;        // linear register allocation
     final private Map<String, Map<String, String>> aRegs;                 // argument "a" registers
-    private Map<String, Map<String, Interval>> liveRanges;          // live ranges of local variables
-    private Map<String, Map<String, Interval>> aLiveRanges;         // argument live ranges
+    final private Map<String, Map<String, Interval>> liveRanges;          // live ranges of local variables
+    final private Map<String, Map<String, Interval>> aLiveRanges;         // argument live ranges
 
     // Sparrow-V states
     List<sparrowv.Instruction> instructions;
@@ -61,7 +61,6 @@ public class TranslatorNoAlloc extends DepthFirst {
         this.aRegs = aRegs;
         this.liveRanges = new HashMap<>(tsIntervals);
         this.aLiveRanges = new HashMap<>(aRanges);
-        this.currLineNum = 0;
     }
 
     private String getRegisterOrSpill(String id) {
@@ -124,7 +123,9 @@ public class TranslatorNoAlloc extends DepthFirst {
         for (Identifier fp : n.formalParameters) {
             params.add(fp);
         }
+
         instructions = new ArrayList<>();
+        currLineNum = 1;
 
         // Function prologue: save all callee-saved registers
         saveRestore(CALLEE_SET, new HashSet<>(), myFrame, true);
@@ -139,20 +140,14 @@ public class TranslatorNoAlloc extends DepthFirst {
     }
 
     @Override
-    public void visit(Block n) {
-        for (Instruction i: n.instructions) {
-            currLineNum++;
-            i.accept(this);
-        }
-    }
-
-    @Override
     public void visit(LabelInstr n) {
+        currLineNum++;
         instructions.add(new sparrowv.LabelInstr(n.label));
     }
 
     @Override
     public void visit(Move_Id_Integer n) {
+        currLineNum++;
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
 
@@ -165,6 +160,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Move_Id_FuncName n) {
+        currLineNum++;
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "s9" : getRegisterOrSpill(lhs);
 
@@ -176,6 +172,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Add n) {
+        currLineNum++;
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -198,6 +195,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Subtract n) {
+        currLineNum++;
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -220,6 +218,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Multiply n) {
+        currLineNum++;
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -242,6 +241,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(LessThan n) {
+        currLineNum++;
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -264,6 +264,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Load n) {
+        currLineNum++;
         String lhs = n.lhs.toString();
         String base = n.base.toString();
 
@@ -281,6 +282,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Store n) {
+        currLineNum++;
         String base = n.base.toString();
         String rhs = n.rhs.toString();
 
@@ -298,6 +300,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Move_Id_Id n) {
+        currLineNum++;
         String lhs = n.lhs.toString();
         String rhs = n.rhs.toString();
 
@@ -315,6 +318,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Alloc n) {
+        currLineNum++;
         String size = n.size.toString();
         String lhs = n.lhs.toString();
 
@@ -332,6 +336,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Print n) {
+        currLineNum++;
         String content = n.content.toString();
         String contentReg = isSpilled(content) ? "s9" : getRegisterOrSpill(content);
 
@@ -342,16 +347,19 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(ErrorMessage n) {
+        currLineNum++;
         instructions.add(new sparrowv.ErrorMessage(n.msg));
     }
 
     @Override
     public void visit(Goto n) {
+        currLineNum++;
         instructions.add(new sparrowv.Goto(n.label));
     }
 
     @Override
     public void visit(IfGoto n) {
+        currLineNum++;
         String cond = n.condition.toString();
         String condReg = isSpilled(cond) ? "s9" : getRegisterOrSpill(cond);
 
@@ -362,6 +370,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
     @Override
     public void visit(Call n) {
+        currLineNum++;
         int callFrame = frameId++;
 
         // Save all caller-saved and argument registers before call
@@ -371,6 +380,7 @@ public class TranslatorNoAlloc extends DepthFirst {
         String calleeReg = isSpilled(callee) ? "s9" : getRegisterOrSpill(callee);
         String lhsReg = isSpilled(lhs) ? "s10" : getRegisterOrSpill(lhs);
 
+        // Ignore registers that are not live (don't save)
         Set<String> ignoreRegs = new HashSet<>();
 
         saveRestore(CALLER_SET, ignoreRegs, callFrame, true);
