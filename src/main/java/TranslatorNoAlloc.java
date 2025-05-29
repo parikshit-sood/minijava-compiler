@@ -10,13 +10,11 @@ import IR.token.Identifier;
 import IR.token.Register;
 import sparrow.Add;
 import sparrow.Alloc;
-import sparrow.Block;
 import sparrow.Call;
 import sparrow.ErrorMessage;
 import sparrow.FunctionDecl;
 import sparrow.Goto;
 import sparrow.IfGoto;
-import sparrow.Instruction;
 import sparrow.LabelInstr;
 import sparrow.LessThan;
 import sparrow.Load;
@@ -50,6 +48,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     private static final Set<String> ARG_REGS = new HashSet<>(Arrays.asList("a2","a3","a4","a5","a6","a7"));
 
     private int frameId = 0;
+    boolean isMain;
 
     public TranslatorNoAlloc(
         Map<String, Map<String, String>> linearRegAlloc,
@@ -110,8 +109,12 @@ public class TranslatorNoAlloc extends DepthFirst {
     @Override
     public void visit(Program n) { 
         funcs = new ArrayList<>();
+        int idx = 0;    // Main function is always the first
+
         for (FunctionDecl fd : n.funDecls) {
+            isMain = (idx == 0);
             fd.accept(this);
+            idx++;
         }
         prog = new sparrowv.Program(funcs);
     }
@@ -119,23 +122,62 @@ public class TranslatorNoAlloc extends DepthFirst {
     @Override
     public void visit(FunctionDecl n) {
         int myFrame = frameId++;
+        currentFunction = n.functionName.toString();
+
+        // Load formal parameters
         List<Identifier> params = new ArrayList<>();
-        for (Identifier fp : n.formalParameters) {
+        for (int i = 6; i < n.formalParameters.size(); i++) {
+            Identifier fp = n.formalParameters.get(i);
             params.add(fp);
+        }
+
+        // DEBUGGING: TODO REMOVE
+        System.err.println("Function: " + currentFunction);
+        System.err.println("  Argument Registers:");
+        if (aRegs.containsKey(currentFunction)) {
+            for (Map.Entry<String, String> entry : aRegs.get(currentFunction).entrySet()) {
+                System.err.println("    " + entry.getKey() + " -> " + entry.getValue());
+            }
+        }
+        System.err.println("  Linear Register Allocations:");
+        if (linearRegAlloc.containsKey(currentFunction)) {
+            for (Map.Entry<String, String> entry : linearRegAlloc.get(currentFunction).entrySet()) {
+                System.err.println("    " + entry.getKey() + " -> " + entry.getValue());
+            }
         }
 
         instructions = new ArrayList<>();
         currLineNum = 1;
 
         // Function prologue: save all callee-saved registers
-        saveRestore(CALLEE_SET, new HashSet<>(), myFrame, true);
+        if (!isMain)
+            saveRestore(CALLEE_SET, new HashSet<>(), myFrame, true);
+        
+        // Load formal parameters into registers if needed
+        for (int i = 0; i < params.size(); i++) {
+            Identifier param = params.get(i);
+            String paramName = param.toString();
+            String paramReg = getRegisterOrSpill(paramName);
+
+            if (!isSpilled(paramName)) {
+                instructions.add(new sparrowv.Move_Reg_Id(new Register(paramReg), param));
+            }
+        }
 
         n.block.accept(this);
 
-        // Function epilogue: restore all callee-saved registers
-        saveRestore(CALLEE_SET, new HashSet<>(), myFrame, false);
+        Identifier returnId = n.block.return_id;
+        String returnReg = getRegisterOrSpill(returnId.toString());
 
-        sparrowv.Block block = new sparrowv.Block(instructions, n.block.return_id);
+        instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
+
+        // Function epilogue: restore all callee-saved registers
+        if (!isMain)
+            saveRestore(CALLEE_SET, new HashSet<>(), myFrame, false);
+
+        System.err.println("Returning from " + currentFunction);
+
+        sparrowv.Block block = new sparrowv.Block(instructions, returnId);
         funcs.add(new sparrowv.FunctionDecl(n.functionName, params, block));
     }
 
@@ -369,6 +411,9 @@ public class TranslatorNoAlloc extends DepthFirst {
     }
 
     @Override
+    // TODO: Caller needs to load spilled args with values
+    // TODO: Use temp registers "t" after saving them to handle "a"-"a" transfers. Use two passes??
+    // TODO: Move return value immediately into temp register, restore, then move back (if originally return value is allocated to register)
     public void visit(Call n) {
         currLineNum++;
         int callFrame = frameId++;
