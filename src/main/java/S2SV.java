@@ -29,7 +29,12 @@ public class S2SV {
         SparrowConstructor constructor = new SparrowConstructor();
         root.accept(constructor);
         sparrow.Program prog = constructor.getProgram();
-        TranslatorNoAlloc tr = new TranslatorNoAlloc();
+        TranslatorNoAlloc tr = new TranslatorNoAlloc(
+            lv.linearRegAlloc,
+            lv.aRegs,
+            lv.tsIntervals,
+            lv.aRanges
+        );
         tr.visit(prog);
 
         System.out.println(tr.prog);

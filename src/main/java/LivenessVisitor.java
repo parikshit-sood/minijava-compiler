@@ -64,9 +64,6 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
 
     private void addDef(String fName, String varId, int lineNumber) {
         // First instance of function
-        if (!defs.containsKey(fName)) {
-            defs.put(fName, new HashMap<>());
-        }
 
         if (!defs.get(fName).containsKey(varId)) {
             // First instance of varId
@@ -80,9 +77,6 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
 
     private void addUse(String fName, String varId, int lineNumber) {
         // First instance of function
-        if (!uses.containsKey(fName)) {
-            uses.put(fName, new HashMap<>());
-        }
 
         if (!uses.get(fName).containsKey(varId)) {
             // First instance of varId
