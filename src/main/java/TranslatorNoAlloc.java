@@ -26,7 +26,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     int currLineNum;
 
     // Register sets
-    private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList( "t2","t3","t4","t5"));
+    private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList( "t3","t4","t5"));
     private static final Set<String> CALLEE_SET = new HashSet<>(Arrays.asList("s1","s2","s3","s4","s5","s6","s7","s8", "s9", "s10", "s11"));
     private static final Set<String> ARG_REGS = new HashSet<>(Arrays.asList("a2","a3","a4","a5","a6","a7"));
 
@@ -133,7 +133,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         Identifier returnId = n.block.return_id;
         String returnReg = getRegisterOrSpill(returnId.toString());
 
-        instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
+        if (!isSpilled(returnId.toString()))
+            instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
 
         // Function epilogue: restore all callee-saved registers
         if (!isMain)
@@ -380,7 +381,7 @@ public class TranslatorNoAlloc extends DepthFirst {
         String callee = n.callee.toString();
         String lhs = n.lhs.toString();
 
-        String calleeReg = isSpilled(callee) ? "t0" : getRegisterOrSpill(callee);
+        String calleeReg = isSpilled(callee) ? "t2" : getRegisterOrSpill(callee);
         String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
         saveRestore(CALLER_SET, true);
@@ -398,7 +399,11 @@ public class TranslatorNoAlloc extends DepthFirst {
                 instructions.add(new sparrowv.Move_Reg_Id(new Register("t0"), arg));
                 instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register("t0")));
             } else {
-                instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register(srcReg)));
+                if (ARG_REGS.contains(srcReg)) {
+                    instructions.add(new sparrowv.Move_Reg_Id(new Register("a" + (i + 2)), new Identifier("stack_save_" + srcReg)));
+                } else {
+                    instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register(srcReg)));
+                }
             }
         }
 
