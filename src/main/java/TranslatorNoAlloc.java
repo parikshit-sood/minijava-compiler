@@ -8,24 +8,7 @@ import java.util.Set;
 
 import IR.token.Identifier;
 import IR.token.Register;
-import sparrow.Add;
-import sparrow.Alloc;
-import sparrow.Call;
-import sparrow.ErrorMessage;
-import sparrow.FunctionDecl;
-import sparrow.Goto;
-import sparrow.IfGoto;
-import sparrow.LabelInstr;
-import sparrow.LessThan;
-import sparrow.Load;
-import sparrow.Move_Id_FuncName;
-import sparrow.Move_Id_Id;
-import sparrow.Move_Id_Integer;
-import sparrow.Multiply;
-import sparrow.Print;
-import sparrow.Program;
-import sparrow.Store;
-import sparrow.Subtract;
+import sparrow.*;
 import sparrow.visitor.DepthFirst;
 
 public class TranslatorNoAlloc extends DepthFirst {
@@ -47,7 +30,6 @@ public class TranslatorNoAlloc extends DepthFirst {
     private static final Set<String> CALLEE_SET = new HashSet<>(Arrays.asList("s1","s2","s3","s4","s5","s6","s7","s8", "s9", "s10", "s11"));
     private static final Set<String> ARG_REGS = new HashSet<>(Arrays.asList("a2","a3","a4","a5","a6","a7"));
 
-    private int frameId = 0;
     boolean isMain;
 
     public TranslatorNoAlloc(
@@ -81,14 +63,12 @@ public class TranslatorNoAlloc extends DepthFirst {
         return getRegisterOrSpill(id).equals(id);
     }
 
-    private void saveRestore(Set<String> regs, Set<String> ignoreRegs, int frame, boolean save) {
+    private void saveRestore(Set<String> regs, boolean save) {
         // System.err.println((save?"SAVE ":"REST ")+currentFunction+
         //                " @frame"+frame+" -> "+regs);
         for (String r : regs) {
-            if (ignoreRegs.contains(r))
-                continue;
 
-            Identifier slot = new Identifier("stack_" + frame + "_save_" + r);
+            Identifier slot = new Identifier("stack_save_" + r);
             if (save) {
                 instructions.add(new sparrowv.Move_Id_Reg(slot, new Register(r)));
             } else {
@@ -120,8 +100,7 @@ public class TranslatorNoAlloc extends DepthFirst {
     }
 
     @Override
-    public void visit(FunctionDecl n) {
-        int myFrame = frameId++;
+    public void visit(FunctionDecl n) {                 
         currentFunction = n.functionName.toString();
 
         // Load formal parameters
@@ -131,27 +110,12 @@ public class TranslatorNoAlloc extends DepthFirst {
             params.add(fp);
         }
 
-        // DEBUGGING: TODO REMOVE
-        System.err.println("Function: " + currentFunction);
-        System.err.println("  Argument Registers:");
-        if (aRegs.containsKey(currentFunction)) {
-            for (Map.Entry<String, String> entry : aRegs.get(currentFunction).entrySet()) {
-                System.err.println("    " + entry.getKey() + " -> " + entry.getValue());
-            }
-        }
-        System.err.println("  Linear Register Allocations:");
-        if (linearRegAlloc.containsKey(currentFunction)) {
-            for (Map.Entry<String, String> entry : linearRegAlloc.get(currentFunction).entrySet()) {
-                System.err.println("    " + entry.getKey() + " -> " + entry.getValue());
-            }
-        }
-
         instructions = new ArrayList<>();
         currLineNum = 1;
 
         // Function prologue: save all callee-saved registers
         if (!isMain)
-            saveRestore(CALLEE_SET, new HashSet<>(), myFrame, true);
+            saveRestore(CALLEE_SET, true);
         
         // Load formal parameters into registers if needed
         for (int i = 0; i < params.size(); i++) {
@@ -173,9 +137,7 @@ public class TranslatorNoAlloc extends DepthFirst {
 
         // Function epilogue: restore all callee-saved registers
         if (!isMain)
-            saveRestore(CALLEE_SET, new HashSet<>(), myFrame, false);
-
-        System.err.println("Returning from " + currentFunction);
+            saveRestore(CALLEE_SET, false);
 
         sparrowv.Block block = new sparrowv.Block(instructions, returnId);
         funcs.add(new sparrowv.FunctionDecl(n.functionName, params, block));
@@ -411,12 +373,8 @@ public class TranslatorNoAlloc extends DepthFirst {
     }
 
     @Override
-    // TODO: Caller needs to load spilled args with values
-    // TODO: Use temp registers "t" after saving them to handle "a"-"a" transfers. Use two passes??
-    // TODO: Move return value immediately into temp register, restore, then move back (if originally return value is allocated to register)
     public void visit(Call n) {
         currLineNum++;
-        int callFrame = frameId++;
 
         // Save all caller-saved and argument registers before call
         String callee = n.callee.toString();
@@ -425,25 +383,57 @@ public class TranslatorNoAlloc extends DepthFirst {
         String calleeReg = isSpilled(callee) ? "t0" : getRegisterOrSpill(callee);
         String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
-        // Ignore registers that are not live (don't save)
-        Set<String> ignoreRegs = new HashSet<>();
-
-        saveRestore(CALLER_SET, ignoreRegs, callFrame, true);
-        saveRestore(ARG_REGS, ignoreRegs, callFrame, true);
+        saveRestore(CALLER_SET, true);
+        saveRestore(ARG_REGS, true);
 
         if (isSpilled(callee))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), n.callee));
 
-        instructions.add(new sparrowv.Call(new Register(lhsReg), new Register(calleeReg), n.args));
+        // Load arguments into "a" registers from source register
+        for (int i = 0; i < Math.min(6, n.args.size()); i++) {
+            Identifier arg = n.args.get(i);
+            String srcReg = getRegisterOrSpill(arg.toString());
+
+            if (isSpilled(arg.toString())) {
+                instructions.add(new sparrowv.Move_Reg_Id(new Register("t0"), arg));
+                instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register("t0")));
+            } else {
+                instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register(srcReg)));
+            }
+        }
+
+        // Spill additional arguments into "t" registers
+        List<Identifier> overflowArgs = new ArrayList<>();
+        for (int i = 6; i < n.args.size(); i++) {
+            Identifier arg = n.args.get(i);
+            String srcReg = getRegisterOrSpill(arg.toString());
+
+            if (!isSpilled(arg.toString())) {
+                if (!ARG_REGS.contains(srcReg))
+                    instructions.add(new sparrowv.Move_Id_Reg(arg, new Register(srcReg)));
+                else {
+                    instructions.add(new sparrowv.Move_Reg_Id(new Register("t0"), new Identifier("stack_save_" + srcReg)));
+                    instructions.add(new sparrowv.Move_Id_Reg(arg, new Register("t0")));
+                }
+            }
+
+            overflowArgs.add(arg);
+        }
+
+        instructions.add(new sparrowv.Call(new Register(lhsReg), new Register(calleeReg), overflowArgs));
 
         if (isSpilled(lhs)) {
             instructions.add(new sparrowv.Move_Id_Reg(n.lhs, new Register(lhsReg)));
         } else {
-            ignoreRegs.add(lhsReg);
+            instructions.add(new sparrowv.Move_Reg_Reg(new Register("t1"), new Register(lhsReg)));
         }
 
         // Restore all caller-saved and argument registers after call
-        saveRestore(CALLER_SET, ignoreRegs, callFrame, false);
-        saveRestore(ARG_REGS, ignoreRegs, callFrame, false);
+        saveRestore(CALLER_SET, false);
+        saveRestore(ARG_REGS, false);
+
+        if (!isSpilled(lhs)) {
+            instructions.add(new sparrowv.Move_Reg_Reg(new Register(lhsReg), new Register("t1")));
+        }
     }
 }
