@@ -63,7 +63,6 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
     }
 
     private void addDef(String fName, String varId, int lineNumber) {
-        // First instance of function
 
         if (!defs.get(fName).containsKey(varId)) {
             // First instance of varId
@@ -76,7 +75,6 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
     }
 
     private void addUse(String fName, String varId, int lineNumber) {
-        // First instance of function
 
         if (!uses.get(fName).containsKey(varId)) {
             // First instance of varId
@@ -177,7 +175,7 @@ public class LivenessVisitor extends GJVoidDepthFirst<FunctionStruct> {
         intervals.sort(Interval.comparator);
 
         Deque<String> availableRegs = new ArrayDeque<>(
-            Arrays.asList("t3","t4","t5","s1","s2","s3","s4","s5","s6","s7","s8", "s9", "s10", "s11"));  // Reserve t0,t1 registers as temps
+            Arrays.asList("t3","t4","t5","s1","s2","s3","s4","s5","s6","s7","s8", "s9", "s10", "s11"));  // Reserve t0,t1,t2 registers as temps
 
         Map<String, String> tempAssignment = new HashMap<>();
         Map<String, String> assignment = new HashMap<>();

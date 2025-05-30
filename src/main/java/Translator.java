@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import IR.token.Identifier;
 import IR.token.Register;
@@ -23,7 +25,6 @@ public class Translator extends DepthFirst {
     List<sparrowv.FunctionDecl> funcs;
     sparrowv.Program prog;
     String currentFunction;
-    int currLineNum;
 
     // Register sets
     private static final Set<String> CALLER_SET = new HashSet<>(Arrays.asList( "t3","t4","t5"));
@@ -31,6 +32,7 @@ public class Translator extends DepthFirst {
     private static final Set<String> ARG_REGS = new HashSet<>(Arrays.asList("a2","a3","a4","a5","a6","a7"));
 
     boolean isMain;
+    private int currLine;
 
     public Translator(
         Map<String, Map<String, String>> linearRegAlloc,
@@ -64,10 +66,9 @@ public class Translator extends DepthFirst {
     }
 
     private void saveRestore(Set<String> regs, boolean save) {
-        // System.err.println((save?"SAVE ":"REST ")+currentFunction+
-        //                " @frame"+frame+" -> "+regs);
-        for (String r : regs) {
+        if (regs.isEmpty()) return;
 
+        for (String r : regs) {
             Identifier slot = new Identifier("stack_save_" + r);
             if (save) {
                 instructions.add(new sparrowv.Move_Id_Reg(slot, new Register(r)));
@@ -77,13 +78,15 @@ public class Translator extends DepthFirst {
         }
     }
 
-    private boolean livesPast(String var, int pos) {
-        Interval iv = liveRanges.get(currentFunction).get(var);
+    private boolean livePastNow(String reg) {
+        Map<String, Interval> l  = liveRanges.get(currentFunction);
+        Map<String, Interval> al = aLiveRanges.get(currentFunction);
 
-        if (iv == null) {
-            iv = aLiveRanges.get(currentFunction).get(var);
-        }
-        return iv != null && iv.getLast() > pos;
+        return Stream.concat(l.entrySet().stream(), al.entrySet().stream())
+                    .anyMatch(e -> {
+                        String home = getRegisterOrSpill(e.getKey());
+                        return home.equals(reg) && e.getValue().getLast() > currLine;
+                    });
     }
 
     @Override
@@ -102,6 +105,7 @@ public class Translator extends DepthFirst {
     @Override
     public void visit(FunctionDecl n) {                 
         currentFunction = n.functionName.toString();
+        currLine = 0;
 
         // Load formal parameters
         List<Identifier> params = new ArrayList<>();
@@ -111,11 +115,17 @@ public class Translator extends DepthFirst {
         }
 
         instructions = new ArrayList<>();
-        currLineNum = 1;
 
-        // Function prologue: save all callee-saved registers
+        // Get used callees for the current function
+        Set<String> usedCallees = linearRegAlloc.get(currentFunction)
+            .values()
+            .stream()
+            .filter(CALLEE_SET::contains)
+            .collect(Collectors.toSet());
+
+        // Save callee-saved registers
         if (!isMain)
-            saveRestore(CALLEE_SET, true);
+            saveRestore(usedCallees, true);
         
         // Load formal parameters into registers if needed
         for (int i = 0; i < params.size(); i++) {
@@ -136,9 +146,9 @@ public class Translator extends DepthFirst {
         if (!isSpilled(returnId.toString()))
             instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
 
-        // Function epilogue: restore all callee-saved registers
+        // Restore used callee registers
         if (!isMain)
-            saveRestore(CALLEE_SET, false);
+            saveRestore(usedCallees, false);
 
         sparrowv.Block block = new sparrowv.Block(instructions, returnId);
         funcs.add(new sparrowv.FunctionDecl(n.functionName, params, block));
@@ -146,13 +156,19 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(LabelInstr n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         instructions.add(new sparrowv.LabelInstr(n.label));
     }
 
     @Override
     public void visit(Move_Id_Integer n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
 
@@ -165,7 +181,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Move_Id_FuncName n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
 
@@ -177,7 +196,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Add n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -200,7 +222,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Subtract n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -223,7 +248,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Multiply n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -246,7 +274,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(LessThan n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
         String lhs = n.lhs.toString();
@@ -269,7 +300,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Load n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String lhs = n.lhs.toString();
         String base = n.base.toString();
 
@@ -287,7 +321,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Store n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String base = n.base.toString();
         String rhs = n.rhs.toString();
 
@@ -305,7 +342,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Move_Id_Id n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String lhs = n.lhs.toString();
         String rhs = n.rhs.toString();
 
@@ -323,7 +363,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Alloc n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String size = n.size.toString();
         String lhs = n.lhs.toString();
 
@@ -341,7 +384,10 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Print n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String content = n.content.toString();
         String contentReg = isSpilled(content) ? "t0" : getRegisterOrSpill(content);
 
@@ -352,19 +398,28 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(ErrorMessage n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         instructions.add(new sparrowv.ErrorMessage(n.msg));
     }
 
     @Override
     public void visit(Goto n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        
         instructions.add(new sparrowv.Goto(n.label));
     }
 
     @Override
     public void visit(IfGoto n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+
         String cond = n.condition.toString();
         String condReg = isSpilled(cond) ? "t0" : getRegisterOrSpill(cond);
 
@@ -375,7 +430,9 @@ public class Translator extends DepthFirst {
 
     @Override
     public void visit(Call n) {
-        currLineNum++;
+        currLine++;
+
+        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         // Save all caller-saved and argument registers before call
         String callee = n.callee.toString();
@@ -384,8 +441,18 @@ public class Translator extends DepthFirst {
         String calleeReg = isSpilled(callee) ? "t2" : getRegisterOrSpill(callee);
         String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
 
-        saveRestore(CALLER_SET, true);
-        saveRestore(ARG_REGS, true);
+        // Get live caller and args registers after the call
+        Set<String> liveCaller = CALLER_SET.stream()
+                     .filter(this::livePastNow)
+                     .collect(Collectors.toSet());
+
+        Set<String> liveArgs = new HashSet<>();
+        if (aRegs.get(currentFunction) != null) {
+            liveArgs.addAll(aRegs.get(currentFunction).values());
+        }
+
+        saveRestore(liveCaller, true);
+        saveRestore(liveArgs, true);
 
         if (isSpilled(callee))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), n.callee));
@@ -434,8 +501,8 @@ public class Translator extends DepthFirst {
         }
 
         // Restore all caller-saved and argument registers after call
-        saveRestore(CALLER_SET, false);
-        saveRestore(ARG_REGS, false);
+        saveRestore(liveCaller, false);
+        saveRestore(liveArgs, false);
 
         if (!isSpilled(lhs)) {
             instructions.add(new sparrowv.Move_Reg_Reg(new Register(lhsReg), new Register("t1")));
