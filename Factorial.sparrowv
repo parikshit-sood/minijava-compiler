@@ -1,0 +1,105 @@
+func Main()
+t2 = 4
+t3 = alloc(t2)
+t4 = alloc(t2)
+t2 = @FacComputeFac
+[t4 + 0] = t2
+t2 = t4
+[t3 + 0] = t2
+if0 t3 goto null1
+t5 = [t3 + 0]
+t5 = [t5 + 0]
+t2 = 6
+stack_1_save_t4 = t4
+stack_1_save_t5 = t5
+stack_1_save_t2 = t2
+stack_1_save_t3 = t3
+stack_1_save_a2 = a2
+stack_1_save_a3 = a3
+stack_1_save_a4 = a4
+stack_1_save_a5 = a5
+stack_1_save_a6 = a6
+stack_1_save_a7 = a7
+a2 = t3
+a3 = t2
+s1 = call t5()
+t4 = stack_1_save_t4
+t5 = stack_1_save_t5
+t2 = stack_1_save_t2
+t3 = stack_1_save_t3
+a2 = stack_1_save_a2
+a3 = stack_1_save_a3
+a4 = stack_1_save_a4
+a5 = stack_1_save_a5
+a6 = stack_1_save_a6
+a7 = stack_1_save_a7
+print(s1)
+goto main_end
+null1:
+error("null pointer")
+main_end:
+v0 = t2
+      return v0
+
+func FacComputeFac()
+stack_2_save_s3 = s3
+stack_2_save_s4 = s4
+stack_2_save_s5 = s5
+stack_2_save_s11 = s11
+stack_2_save_s6 = s6
+stack_2_save_s10 = s10
+stack_2_save_s7 = s7
+stack_2_save_s8 = s8
+stack_2_save_s9 = s9
+stack_2_save_s1 = s1
+stack_2_save_s2 = s2
+t2 = 1
+t3 = a3 < t2
+if0 t3 goto if1_else
+t4 = 1
+goto if1_end
+if1_else:
+t5 = [a2 + 0]
+t5 = [t5 + 0]
+t2 = 1
+s1 = a3 - t2
+stack_3_save_t4 = t4
+stack_3_save_t5 = t5
+stack_3_save_t2 = t2
+stack_3_save_t3 = t3
+stack_3_save_a2 = a2
+stack_3_save_a3 = a3
+stack_3_save_a4 = a4
+stack_3_save_a5 = a5
+stack_3_save_a6 = a6
+stack_3_save_a7 = a7
+a2 = a2
+a3 = s1
+s2 = call t5()
+t4 = stack_3_save_t4
+t5 = stack_3_save_t5
+t2 = stack_3_save_t2
+t3 = stack_3_save_t3
+a2 = stack_3_save_a2
+a3 = stack_3_save_a3
+a4 = stack_3_save_a4
+a5 = stack_3_save_a5
+a6 = stack_3_save_a6
+a7 = stack_3_save_a7
+t4 = a3 * s2
+if1_end:
+num_aux = t4
+s3 = stack_2_save_s3
+s4 = stack_2_save_s4
+s5 = stack_2_save_s5
+s11 = stack_2_save_s11
+s6 = stack_2_save_s6
+s10 = stack_2_save_s10
+s7 = stack_2_save_s7
+s8 = stack_2_save_s8
+s9 = stack_2_save_s9
+s1 = stack_2_save_s1
+s2 = stack_2_save_s2
+      return num_aux
+
+

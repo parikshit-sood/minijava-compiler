@@ -1,0 +1,188 @@
+func Main()
+t2 = 0
+t3 = 1
+t4 = 2
+t5 = 3
+t0 = 4
+v4 = t0
+s2 = 5
+s3 = 6
+s4 = 7
+t0 = 8
+v8 = t0
+t0 = 9
+v9 = t0
+t0 = 10
+v10 = t0
+s8 = 11
+s9 = 12
+s10 = 13
+s11 = 14
+s7 = 15
+s1 = 16
+s6 = @g
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t2 = t2
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+stack_save_a4 = a4
+stack_save_a5 = a5
+stack_save_a6 = a6
+stack_save_a7 = a7
+t0 = v10
+a2 = t0
+t0 = v9
+a3 = t0
+t0 = v8
+a4 = t0
+a5 = s4
+a6 = s3
+a7 = s2
+v3 = t5
+v2 = t4
+v1 = t3
+v0 = t2
+s5 = call s6(v4 v3 v2 v1 v0)
+t1 = s5
+t4 = stack_save_t4
+t5 = stack_save_t5
+t2 = stack_save_t2
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+a4 = stack_save_a4
+a5 = stack_save_a5
+a6 = stack_save_a6
+a7 = stack_save_a7
+s5 = t1
+s6 = 4
+print(s6)
+print(s5)
+t0 = v4
+print(t0)
+print(s2)
+t2 = s8
+print(t2)
+t3 = s9
+print(t3)
+t4 = s10
+print(t4)
+t5 = s11
+print(t5)
+t0 = s7
+v4 = t0
+t0 = v4
+print(t0)
+s2 = s1
+print(s2)
+t0 = v4
+print(t0)
+print(t2)
+print(t3)
+print(t4)
+print(t5)
+print(s3)
+print(s4)
+t0 = v8
+print(t0)
+t0 = v9
+print(t0)
+t0 = v10
+print(t0)
+      return v4
+
+func g(four three two one zero)
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+s1 = four
+t3 = three
+t4 = two
+t2 = one
+t5 = zero
+print(a2)
+print(t3)
+print(t5)
+s2 = a2 - a3
+s3 = a5 - a4
+s4 = a6 * a7
+s5 = s1 + t3
+s6 = t4 + t2
+s7 = t3 * t5
+s2 = s3 + s2
+s4 = s7 - s4
+s5 = s5 * s6
+s2 = s4 - s2
+s5 = s5 * s2
+s8 = 14
+print(t3)
+L:
+print(t5)
+print(s8)
+if0 t5 goto WORK
+goto END
+WORK:
+s9 = @g
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t2 = t2
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+stack_save_a4 = a4
+stack_save_a5 = a5
+stack_save_a6 = a6
+stack_save_a7 = a7
+a2 = t5
+a3 = stack_save_a2
+a4 = stack_save_a3
+a5 = stack_save_a4
+a6 = stack_save_a5
+a7 = stack_save_a6
+t0 = stack_save_a7
+five = t0
+four = s1
+three = t3
+two = t4
+one = t2
+s5 = call s9(five four three two one)
+t1 = s5
+t4 = stack_save_t4
+t5 = stack_save_t5
+t2 = stack_save_t2
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+a4 = stack_save_a4
+a5 = stack_save_a5
+a6 = stack_save_a6
+a7 = stack_save_a7
+s5 = t1
+print(t5)
+print(t3)
+END:
+v3 = s5
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v3
+
+
