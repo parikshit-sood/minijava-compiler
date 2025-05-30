@@ -1,8 +1,7 @@
 func Main()
-t2 = @f
+t3 = @f
 stack_save_t4 = t4
 stack_save_t5 = t5
-stack_save_t2 = t2
 stack_save_t3 = t3
 stack_save_a2 = a2
 stack_save_a3 = a3
@@ -10,11 +9,10 @@ stack_save_a4 = a4
 stack_save_a5 = a5
 stack_save_a6 = a6
 stack_save_a7 = a7
-t3 = call t2()
-t1 = t3
+t4 = call t3()
+t1 = t4
 t4 = stack_save_t4
 t5 = stack_save_t5
-t2 = stack_save_t2
 t3 = stack_save_t3
 a2 = stack_save_a2
 a3 = stack_save_a3
@@ -22,9 +20,9 @@ a4 = stack_save_a4
 a5 = stack_save_a5
 a6 = stack_save_a6
 a7 = stack_save_a7
-t3 = t1
-print(t3)
-v1 = t3
+t4 = t1
+print(t4)
+v1 = t4
       return v1
 
 func f()
@@ -39,61 +37,60 @@ stack_save_s8 = s8
 stack_save_s9 = s9
 stack_save_s1 = s1
 stack_save_s2 = s2
-t2 = 10
-t3 = 20
-t4 = t2 + t3
-t5 = 30
-s1 = t2 < t5
-if0 s1 goto L8
-s2 = t2 + t4
-s3 = t2 + t3
+t3 = 10
+t4 = 20
+t5 = t3 + t4
+s1 = 30
+s2 = t3 < s1
+if0 s2 goto L8
+s3 = t3 + t5
+s4 = t3 + t4
 goto L10
 L8:
-s6 = t3 + t4
+s7 = t4 + t5
 goto L14
 L10:
-s4 = 50
-t3 = s2 + s4
-s7 = t4 + s2
-s8 = s7 + s3
-print(s8)
-s6 = t4 + s3
-s5 = 40
-t3 = t3 + s5
+s5 = 50
+t4 = s3 + s5
+s8 = t5 + s3
+s9 = s8 + s4
+print(s9)
+s7 = t5 + s4
+s6 = 40
+t4 = t4 + s6
 goto L8
 L14:
-s9 = 10
-s3 = t2 + s9
+s10 = 10
+s4 = t3 + s10
 L22:
-t3 = 55
-s11 = 20
-t4 = t2 - s11
-s4 = t3 < t4
-if0 s4 goto L20
-s2 = t4 + t3
-s6 = s2 - s9
-s1 = s2 + s6
-print(s1)
-t3 = t4 + s6
-s10 = 2
-s3 = s10 - t3
+t4 = 55
+s2 = 20
+t5 = t3 - s2
+s6 = t4 < t5
+if0 s6 goto L20
+s3 = t5 + t4
+s7 = s3 - s10
+s5 = s3 + s7
+print(s5)
+t4 = t5 + s7
+s11 = 2
+s4 = s11 - t4
 goto L22
 L20:
-s5 = 7
-t3 = s3 + s5
-t4 = t4 + t3
-s10 = 2
-s6 = s10 * t4
-s8 = s3 + s9
-t2 = 55
-s1 = t2
-s4 = @func_g
-t5 = s8 < s1
-if0 t5 goto L27
-s5 = s8 - s11
+s9 = 7
+t4 = s4 + s9
+t5 = t5 + t4
+s11 = 2
+s7 = s11 * t5
+t3 = s4 + s10
+s5 = 55
+s6 = s5
+s9 = @func_g
+s1 = t3 < s6
+if0 s1 goto L27
+s10 = t3 - s2
 stack_save_t4 = t4
 stack_save_t5 = t5
-stack_save_t2 = t2
 stack_save_t3 = t3
 stack_save_a2 = a2
 stack_save_a3 = a3
@@ -101,19 +98,18 @@ stack_save_a4 = a4
 stack_save_a5 = a5
 stack_save_a6 = a6
 stack_save_a7 = a7
-a2 = t3
-a3 = t4
-a4 = s2
-a5 = s6
-a6 = s3
-a7 = s8
-h = s1
-i = s5
-s1 = call s4(h i)
-t1 = s1
+a2 = t4
+a3 = t5
+a4 = s3
+a5 = s7
+a6 = s4
+a7 = t3
+h = s6
+i = s10
+s6 = call s9(h i)
+t1 = s6
 t4 = stack_save_t4
 t5 = stack_save_t5
-t2 = stack_save_t2
 t3 = stack_save_t3
 a2 = stack_save_a2
 a3 = stack_save_a3
@@ -121,43 +117,43 @@ a4 = stack_save_a4
 a5 = stack_save_a5
 a6 = stack_save_a6
 a7 = stack_save_a7
-s1 = t1
-s9 = s5 + s1
+s6 = t1
+s5 = s10 + s6
 goto L29
 L27:
-t2 = 1
-t5 = s8 + t2
-s9 = s10 * t5
+s1 = 1
+t4 = t3 + s1
+s5 = s11 * t4
 L29:
-t3 = 5
-s6 = s9 - t3
-t5 = s8 + s6
-s3 = s9 - t5
-s4 = s3 + s6
-print(s4)
-s5 = s9 + t5
-t4 = t4 + s2
-s1 = s2 + s11
-t2 = s5 + s1
-s7 = s2 < t2
+s7 = 5
+s4 = s5 - s7
+t4 = t3 + s4
+s9 = s5 - t4
+s6 = s9 + s4
+print(s6)
+s10 = s5 + t4
+t5 = t5 + s3
+s1 = s3 + s2
+s11 = s10 + s1
+s8 = s3 < s11
 L3:
-if0 s7 goto L12
-t3 = s2 + s1
-s4 = 30
-s6 = t3 + s4
-s6 = s5 - s6
-t2 = t3 - s6
-s10 = 0
-s7 = t2 * s10
-s1 = t4 + s8
-t2 = t3 + t2
-s3 = s1 - t2
-print(s3)
+if0 s8 goto L12
+s4 = s3 + s1
+s5 = 30
+s9 = s4 + s5
+s9 = s10 - s9
+s11 = s4 - s9
+s7 = 0
+s8 = s11 * s7
+s1 = t5 + t3
+s11 = s4 + s11
+s6 = s1 - s11
+print(s6)
 goto L3
 L12:
-s8 = t5 - t2
-s8 = t3 + s8
-g = s8
+t3 = t4 - s11
+t3 = s4 + t3
+g = t3
 s3 = stack_save_s3
 s4 = stack_save_s4
 s5 = stack_save_s5
@@ -183,20 +179,19 @@ stack_save_s8 = s8
 stack_save_s9 = s9
 stack_save_s1 = s1
 stack_save_s2 = s2
-t3 = x7
-t2 = x8
-t4 = a2 + a3
-t5 = a4 + a5
-s1 = a6 + a7
-s2 = t3 + t2
-s3 = 10
-s4 = s3
-s5 = t2 < a2
-if0 s5 goto L42
-s6 = @func_g
+t4 = x7
+t3 = x8
+t5 = a2 + a3
+s1 = a4 + a5
+s2 = a6 + a7
+s3 = t4 + t3
+s4 = 10
+s5 = s4
+s6 = t3 < a2
+if0 s6 goto L42
+s7 = @func_g
 stack_save_t4 = t4
 stack_save_t5 = t5
-stack_save_t2 = t2
 stack_save_t3 = t3
 stack_save_a2 = a2
 stack_save_a3 = a3
@@ -204,20 +199,19 @@ stack_save_a4 = a4
 stack_save_a5 = a5
 stack_save_a6 = a6
 stack_save_a7 = a7
-a2 = s5
-a3 = t3
-a4 = s5
-a5 = a6
-a6 = s3
-a7 = s5
+a2 = s6
+a3 = t4
+a4 = s6
+a5 = stack_save_a6
+a6 = s4
+a7 = s6
 t0 = stack_save_a3
 x2 = t0
-ten = s3
-t4 = call s6(x2 ten)
-t1 = t4
+ten = s4
+t5 = call s7(x2 ten)
+t1 = t5
 t4 = stack_save_t4
 t5 = stack_save_t5
-t2 = stack_save_t2
 t3 = stack_save_t3
 a2 = stack_save_a2
 a3 = stack_save_a3
@@ -225,15 +219,15 @@ a4 = stack_save_a4
 a5 = stack_save_a5
 a6 = stack_save_a6
 a7 = stack_save_a7
-t4 = t1
+t5 = t1
 L42:
-s4 = s2 - t4
-s7 = t5 * s4
-s8 = s1 - s7
-s9 = s2 + s4
-s10 = s4 + s7
-s11 = s8 + s9
-j = s11
+s5 = s3 - t5
+s8 = s1 * s5
+s9 = s2 - s8
+s10 = s3 + s5
+s11 = s5 + s8
+t3 = s9 + s10
+j = t3
 s3 = stack_save_s3
 s4 = stack_save_s4
 s5 = stack_save_s5
