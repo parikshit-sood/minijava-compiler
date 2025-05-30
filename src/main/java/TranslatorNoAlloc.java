@@ -133,7 +133,8 @@ public class TranslatorNoAlloc extends DepthFirst {
         Identifier returnId = n.block.return_id;
         String returnReg = getRegisterOrSpill(returnId.toString());
 
-        instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
+        if (!isSpilled(returnId.toString()))
+            instructions.add(new sparrowv.Move_Id_Reg(returnId, new Register(returnReg)));
 
         // Function epilogue: restore all callee-saved registers
         if (!isMain)
@@ -398,7 +399,11 @@ public class TranslatorNoAlloc extends DepthFirst {
                 instructions.add(new sparrowv.Move_Reg_Id(new Register("t0"), arg));
                 instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register("t0")));
             } else {
-                instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register(srcReg)));
+                if (ARG_REGS.contains(srcReg)) {
+                    instructions.add(new sparrowv.Move_Reg_Id(new Register("a" + (i + 2)), new Identifier("stack_save_" + srcReg)));
+                } else {
+                    instructions.add(new sparrowv.Move_Reg_Reg(new Register("a" + (i + 2)), new Register(srcReg)));
+                }
             }
         }
 
