@@ -1,0 +1,1212 @@
+main
+    t2 = 4
+    t3 = alloc(t2)
+    if0 t3 goto nullErr_0
+    t4 = 0
+    t2 = 4
+    t5 = alloc(t2)
+    if0 t5 goto nullErr_0
+    s1 = @TV_Start
+    [t5 + 0] = s1
+    [t3 + 0] = t5
+    goto success_1
+    success_1:
+    if0 t3 goto nullErr_2
+    goto success_3
+    success_3:
+    s2 = [t3 + 0]
+    s3 = [s2 + 0]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = t3
+    s4 = call s3()
+TV_Start
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = 28
+    t3 = alloc(t2)
+    if0 t3 goto nullErr_4
+    t4 = 0
+    [t3 + 4] = t4
+    [t3 + 8] = t4
+    [t3 + 12] = t4
+    [t3 + 16] = t4
+    [t3 + 20] = t4
+    [t3 + 24] = t4
+    t2 = 84
+    t5 = alloc(t2)
+    if0 t5 goto nullErr_4
+    s1 = @Tree_Insert
+    [t5 + 48] = s1
+    s2 = @Tree_accept
+    [t5 + 80] = s2
+    s3 = @Tree_GetRight
+    [t5 + 12] = s3
+    s4 = @Tree_GetHas_Left
+    [t5 + 32] = s4
+    s5 = @Tree_RemoveRight
+    [t5 + 60] = s5
+    s6 = @Tree_SetRight
+    [t5 + 4] = s6
+    s7 = @Tree_RecPrint
+    [t5 + 76] = s7
+    s8 = @Tree_Search
+    [t5 + 68] = s8
+    s9 = @Tree_Compare
+    [t5 + 44] = s9
+    s10 = @Tree_Remove
+    [t5 + 56] = s10
+    s11 = @Tree_SetKey
+    [t5 + 24] = s11
+    t4 = @Tree_SetHas_Left
+    [t5 + 36] = t4
+    t2 = @Tree_Init
+    [t5 + 0] = t2
+    s1 = @Tree_SetLeft
+    [t5 + 8] = s1
+    s2 = @Tree_GetKey
+    [t5 + 20] = s2
+    s3 = @Tree_GetLeft
+    [t5 + 16] = s3
+    s4 = @Tree_GetHas_Right
+    [t5 + 28] = s4
+    s5 = @Tree_Print
+    [t5 + 72] = s5
+    s6 = @Tree_Delete
+    [t5 + 52] = s6
+    s7 = @Tree_SetHas_Right
+    [t5 + 40] = s7
+    s8 = @Tree_RemoveLeft
+    [t5 + 64] = s8
+    [t3 + 0] = t5
+    goto success_5
+    success_5:
+    s9 = t3
+    if0 s9 goto nullErr_6
+    goto success_7
+    success_7:
+    s10 = 16
+    s11 = [s9 + 0]
+    t4 = [s11 + 0]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    a3 = s10
+    t2 = call t4()
+Tree_Init
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    [a2 + 12] = a3
+    t2 = 0
+    [a2 + 16] = t2
+    t3 = 0
+    [a2 + 20] = t3
+    t4 = 1
+    v131 = t4
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v131
+    t1 = t2
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t2 = t1
+    s1 = t2
+    if0 s9 goto nullErr_8
+    goto success_9
+    success_9:
+    s2 = [s9 + 0]
+    s3 = [s2 + 72]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    s4 = call s3()
+Tree_Print
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = a2
+    if0 a2 goto nullErr_196
+    goto success_197
+    success_197:
+    t3 = [a2 + 0]
+    t4 = [t3 + 76]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = stack_save_a2
+    a3 = t2
+    t5 = call t4()
+Tree_RecPrint
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    if0 a3 goto nullErr_200
+    goto success_201
+    success_201:
+    t2 = [a3 + 0]
+    t3 = [t2 + 32]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = stack_save_a3
+    t4 = call t3()
+Tree_GetHas_Left
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 16]
+    v150 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v150
+    t1 = t4
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t4 = t1
+    if0 t4 goto else_198
+    else_198:
+    s7 = 1
+    s6 = s7
+    endif_199:
+    if0 a3 goto nullErr_206
+    goto success_207
+    success_207:
+    s8 = [a3 + 0]
+    s9 = [s8 + 20]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = stack_save_a3
+    s10 = call s9()
+Tree_GetKey
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 12]
+    v143 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v143
+    t1 = s10
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    s10 = t1
+    print(s10)
+16
+    if0 a3 goto nullErr_210
+    goto success_211
+    success_211:
+    s11 = [a3 + 0]
+    t2 = [s11 + 28]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = stack_save_a3
+    t3 = call t2()
+Tree_GetHas_Right
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 20]
+    v148 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v148
+    t1 = t3
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t3 = t1
+    if0 t3 goto else_208
+    else_208:
+    s5 = 1
+    s6 = s5
+    endif_209:
+    s7 = 1
+    v458 = s7
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v458
+    t1 = t5
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t5 = t1
+    s1 = t5
+    s2 = 1
+    v431 = s2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v431
+    t1 = s4
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    s4 = t1
+    s1 = s4
+    s5 = 100000000
+    print(s5)
+100000000
+    if0 s9 goto nullErr_10
+    goto success_11
+    success_11:
+    s6 = 8
+    s7 = [s9 + 0]
+    s8 = [s7 + 48]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    a3 = s6
+    t5 = call s8()
+Tree_Insert
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = 28
+    t3 = alloc(t2)
+    if0 t3 goto nullErr_50
+    t4 = 0
+    [t3 + 4] = t4
+    [t3 + 8] = t4
+    [t3 + 12] = t4
+    [t3 + 16] = t4
+    [t3 + 20] = t4
+    [t3 + 24] = t4
+    t2 = 84
+    t5 = alloc(t2)
+    if0 t5 goto nullErr_50
+    s1 = @Tree_Insert
+    [t5 + 48] = s1
+    s2 = @Tree_accept
+    [t5 + 80] = s2
+    s3 = @Tree_GetRight
+    [t5 + 12] = s3
+    s4 = @Tree_GetHas_Left
+    [t5 + 32] = s4
+    s5 = @Tree_RemoveRight
+    [t5 + 60] = s5
+    s6 = @Tree_SetRight
+    [t5 + 4] = s6
+    s7 = @Tree_RecPrint
+    [t5 + 76] = s7
+    s8 = @Tree_Search
+    [t5 + 68] = s8
+    s9 = @Tree_Compare
+    [t5 + 44] = s9
+    s10 = @Tree_Remove
+    [t5 + 56] = s10
+    s11 = @Tree_SetKey
+    [t5 + 24] = s11
+    t4 = @Tree_SetHas_Left
+    [t5 + 36] = t4
+    t2 = @Tree_Init
+    [t5 + 0] = t2
+    s1 = @Tree_SetLeft
+    [t5 + 8] = s1
+    s2 = @Tree_GetKey
+    [t5 + 20] = s2
+    s3 = @Tree_GetLeft
+    [t5 + 16] = s3
+    s4 = @Tree_GetHas_Right
+    [t5 + 28] = s4
+    s5 = @Tree_Print
+    [t5 + 72] = s5
+    s6 = @Tree_Delete
+    [t5 + 52] = s6
+    s7 = @Tree_SetHas_Right
+    [t5 + 40] = s7
+    s8 = @Tree_RemoveLeft
+    [t5 + 64] = s8
+    [t3 + 0] = t5
+    goto success_51
+    success_51:
+    s9 = t3
+    if0 s9 goto nullErr_52
+    goto success_53
+    success_53:
+    s10 = [s9 + 0]
+    s11 = [s10 + 0]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    a3 = stack_save_a3
+    t4 = call s11()
+Tree_Init
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    [a2 + 12] = a3
+    t2 = 0
+    [a2 + 16] = t2
+    t3 = 0
+    [a2 + 20] = t3
+    t4 = 1
+    v131 = t4
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v131
+    t1 = t4
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t4 = t1
+    t2 = t4
+    s1 = a2
+    s2 = 1
+    s3 = s2
+    while_54:
+    if0 s3 goto endWhile_55
+    if0 s1 goto nullErr_56
+    goto success_57
+    success_57:
+    t1 = [s1 + 0]
+    v208 = t1
+    t0 = v208
+    t1 = [t0 + 20]
+    v209 = t1
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    t0 = v209
+    a2 = s1
+    t1 = call t0()
+Tree_GetKey
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 12]
+    v143 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v143
+    v210 = t1
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t1 = v210
+    t0 = t1
+    v178 = t0
+    t1 = v178
+    t1 = a3 < t1
+    v211 = t1
+    t0 = v211
+    if0 t0 goto else_58
+    if0 s1 goto nullErr_62
+    goto success_63
+    success_63:
+    t1 = [s1 + 0]
+    v212 = t1
+    t0 = v212
+    t1 = [t0 + 32]
+    v213 = t1
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    t0 = v213
+    a2 = s1
+    t1 = call t0()
+Tree_GetHas_Left
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 16]
+    v150 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v150
+    v214 = t1
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t0 = v214
+    if0 t0 goto else_60
+    else_60:
+    s11 = 0
+    s3 = s11
+    if0 s1 goto nullErr_66
+    goto success_67
+    success_67:
+    t3 = 1
+    s8 = [s1 + 0]
+    t5 = [s8 + 36]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s1
+    a3 = t3
+    s6 = call t5()
+Tree_SetHas_Left
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    [a2 + 16] = a3
+    t2 = 1
+    v153 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v153
+    t1 = s6
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    s6 = t1
+    t2 = s6
+    if0 s1 goto nullErr_68
+    goto success_69
+    success_69:
+    s7 = [s1 + 0]
+    s4 = [s7 + 8]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s1
+    a3 = s9
+    s5 = call s4()
+Tree_SetLeft
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    [a2 + 4] = a3
+    t2 = 1
+    v137 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v137
+    t1 = s5
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    s5 = t1
+    t2 = s5
+    endif_61:
+    goto endif_59
+    endif_59:
+    goto while_54
+    while_54:
+    if0 s3 goto endWhile_55
+    endWhile_55:
+    s4 = 1
+    v240 = s4
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v240
+    t1 = t5
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t5 = t1
+    s1 = t5
+    if0 s9 goto nullErr_12
+    goto success_13
+    success_13:
+    t3 = 24
+    s11 = [s9 + 0]
+    s10 = [s11 + 48]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    a3 = t3
+    t4 = call s10()
+Tree_Insert
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = 28
+    t3 = alloc(t2)
+    if0 t3 goto nullErr_50
+    t4 = 0
+    [t3 + 4] = t4
+    [t3 + 8] = t4
+    [t3 + 12] = t4
+    [t3 + 16] = t4
+    [t3 + 20] = t4
+    [t3 + 24] = t4
+    t2 = 84
+    t5 = alloc(t2)
+    if0 t5 goto nullErr_50
+    s1 = @Tree_Insert
+    [t5 + 48] = s1
+    s2 = @Tree_accept
+    [t5 + 80] = s2
+    s3 = @Tree_GetRight
+    [t5 + 12] = s3
+    s4 = @Tree_GetHas_Left
+    [t5 + 32] = s4
+    s5 = @Tree_RemoveRight
+    [t5 + 60] = s5
+    s6 = @Tree_SetRight
+    [t5 + 4] = s6
+    s7 = @Tree_RecPrint
+    [t5 + 76] = s7
+    s8 = @Tree_Search
+    [t5 + 68] = s8
+    s9 = @Tree_Compare
+    [t5 + 44] = s9
+    s10 = @Tree_Remove
+    [t5 + 56] = s10
+    s11 = @Tree_SetKey
+    [t5 + 24] = s11
+    t4 = @Tree_SetHas_Left
+    [t5 + 36] = t4
+    t2 = @Tree_Init
+    [t5 + 0] = t2
+    s1 = @Tree_SetLeft
+    [t5 + 8] = s1
+    s2 = @Tree_GetKey
+    [t5 + 20] = s2
+    s3 = @Tree_GetLeft
+    [t5 + 16] = s3
+    s4 = @Tree_GetHas_Right
+    [t5 + 28] = s4
+    s5 = @Tree_Print
+    [t5 + 72] = s5
+    s6 = @Tree_Delete
+    [t5 + 52] = s6
+    s7 = @Tree_SetHas_Right
+    [t5 + 40] = s7
+    s8 = @Tree_RemoveLeft
+    [t5 + 64] = s8
+    [t3 + 0] = t5
+    goto success_51
+    success_51:
+    s9 = t3
+    if0 s9 goto nullErr_52
+    goto success_53
+    success_53:
+    s10 = [s9 + 0]
+    s11 = [s10 + 0]
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    a2 = s9
+    a3 = stack_save_a3
+    t4 = call s11()
+Tree_Init
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    [a2 + 12] = a3
+    t2 = 0
+    [a2 + 16] = t2
+    t3 = 0
+    [a2 + 20] = t3
+    t4 = 1
+    v131 = t4
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v131
+    t1 = t4
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t4 = t1
+    t2 = t4
+    s1 = a2
+    s2 = 1
+    s3 = s2
+    while_54:
+    if0 s3 goto endWhile_55
+    if0 s1 goto nullErr_56
+    goto success_57
+    success_57:
+    t1 = [s1 + 0]
+    v208 = t1
+    t0 = v208
+    t1 = [t0 + 20]
+    v209 = t1
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    t0 = v209
+    a2 = s1
+    t1 = call t0()
+Tree_GetKey
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 12]
+    v143 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v143
+    v210 = t1
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t1 = v210
+    t0 = t1
+    v178 = t0
+    t1 = v178
+    t1 = a3 < t1
+    v211 = t1
+    t0 = v211
+    if0 t0 goto else_58
+    else_58:
+    if0 s1 goto nullErr_72
+    goto success_73
+    success_73:
+    t1 = [s1 + 0]
+    v226 = t1
+    t0 = v226
+    t1 = [t0 + 28]
+    v227 = t1
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    t0 = v227
+    a2 = s1
+    t1 = call t0()
+Tree_GetHas_Right
+    stack_save_s3 = s3
+    stack_save_s4 = s4
+    stack_save_s5 = s5
+    stack_save_s11 = s11
+    stack_save_s6 = s6
+    stack_save_s10 = s10
+    stack_save_s7 = s7
+    stack_save_s8 = s8
+    stack_save_s9 = s9
+    stack_save_s1 = s1
+    stack_save_s2 = s2
+    t2 = [a2 + 20]
+    v148 = t2
+    s3 = stack_save_s3
+    s4 = stack_save_s4
+    s5 = stack_save_s5
+    s11 = stack_save_s11
+    s6 = stack_save_s6
+    s10 = stack_save_s10
+    s7 = stack_save_s7
+    s8 = stack_save_s8
+    s9 = stack_save_s9
+    s1 = stack_save_s1
+    s2 = stack_save_s2
+    return v148
+    v228 = t1
+    t4 = stack_save_t4
+    t5 = stack_save_t5
+    t2 = stack_save_t2
+    t3 = stack_save_t3
+    a2 = stack_save_a2
+    a3 = stack_save_a3
+    a4 = stack_save_a4
+    a5 = stack_save_a5
+    a6 = stack_save_a6
+    a7 = stack_save_a7
+    t0 = v228
+    if0 t0 goto else_70
+    else_70:
+    t0 = 0
+    v232 = t0
+    t1 = v232
+    s3 = t1
+    if0 s1 goto nullErr_76
+    goto success_77
+    success_77:
+    t0 = 1
+    v233 = t0
+    t1 = [s1 + 0]
+    v234 = t1
+    t0 = v234
+    t1 = [t0 + 40]
+    v235 = t1
+    stack_save_t4 = t4
+    stack_save_t5 = t5
+    stack_save_t2 = t2
+    stack_save_t3 = t3
+    stack_save_a2 = a2
+    stack_save_a3 = a3
+    stack_save_a4 = a4
+    stack_save_a5 = a5
+    stack_save_a6 = a6
+    stack_save_a7 = a7
+    t0 = v235
+    a2 = s1
+    t0 = v233
+    a3 = t0
+    t1 = call t0()
+--- Error (Explicit) ---
+Error: t1 = call t0()
+Wrong argument type in Call
