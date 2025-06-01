@@ -65,10 +65,12 @@ public class Translator extends DepthFirst {
         return getRegisterOrSpill(id).equals(id);
     }
 
-    private void saveRestore(Set<String> regs, boolean save) {
+    private void saveRestore(Set<String> regs, Set<String> ignoreRegs, boolean save) {
         if (regs.isEmpty()) return;
 
         for (String r : regs) {
+            if (ignoreRegs.contains(r)) continue;
+
             Identifier slot = new Identifier("stack_save_" + r);
             if (save) {
                 instructions.add(new sparrowv.Move_Id_Reg(slot, new Register(r)));
@@ -85,7 +87,7 @@ public class Translator extends DepthFirst {
         return Stream.concat(l.entrySet().stream(), al.entrySet().stream())
                     .anyMatch(e -> {
                         String home = getRegisterOrSpill(e.getKey());
-                        return home.equals(reg) && e.getValue().getLast() > currLine;
+                        return home.equals(reg) && e.getValue().getLast() > currLine + 1;
                     });
     }
 
@@ -125,7 +127,7 @@ public class Translator extends DepthFirst {
 
         // Save callee-saved registers
         if (!isMain)
-            saveRestore(usedCallees, true);
+            saveRestore(usedCallees, new HashSet<>(), true);
         
         // Load formal parameters into registers if needed
         for (int i = 0; i < params.size(); i++) {
@@ -148,7 +150,7 @@ public class Translator extends DepthFirst {
 
         // Restore used callee registers
         if (!isMain)
-            saveRestore(usedCallees, false);
+            saveRestore(usedCallees, new HashSet<>(), false);
 
         sparrowv.Block block = new sparrowv.Block(instructions, returnId);
         funcs.add(new sparrowv.FunctionDecl(n.functionName, params, block));
@@ -158,7 +160,7 @@ public class Translator extends DepthFirst {
     public void visit(LabelInstr n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         instructions.add(new sparrowv.LabelInstr(n.label));
     }
@@ -167,7 +169,7 @@ public class Translator extends DepthFirst {
     public void visit(Move_Id_Integer n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
@@ -183,7 +185,7 @@ public class Translator extends DepthFirst {
     public void visit(Move_Id_FuncName n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String lhs = n.lhs.toString();
         String lhsReg = isSpilled(lhs) ? "t0" : getRegisterOrSpill(lhs);
@@ -198,7 +200,7 @@ public class Translator extends DepthFirst {
     public void visit(Add n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
@@ -224,7 +226,7 @@ public class Translator extends DepthFirst {
     public void visit(Subtract n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
@@ -250,7 +252,7 @@ public class Translator extends DepthFirst {
     public void visit(Multiply n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
@@ -276,7 +278,7 @@ public class Translator extends DepthFirst {
     public void visit(LessThan n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String arg1 = n.arg1.toString();
         String arg2 = n.arg2.toString();
@@ -302,7 +304,7 @@ public class Translator extends DepthFirst {
     public void visit(Load n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String lhs = n.lhs.toString();
         String base = n.base.toString();
@@ -323,7 +325,7 @@ public class Translator extends DepthFirst {
     public void visit(Store n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String base = n.base.toString();
         String rhs = n.rhs.toString();
@@ -344,7 +346,7 @@ public class Translator extends DepthFirst {
     public void visit(Move_Id_Id n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String lhs = n.lhs.toString();
         String rhs = n.rhs.toString();
@@ -365,7 +367,7 @@ public class Translator extends DepthFirst {
     public void visit(Alloc n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String size = n.size.toString();
         String lhs = n.lhs.toString();
@@ -386,7 +388,7 @@ public class Translator extends DepthFirst {
     public void visit(Print n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String content = n.content.toString();
         String contentReg = isSpilled(content) ? "t0" : getRegisterOrSpill(content);
@@ -400,7 +402,7 @@ public class Translator extends DepthFirst {
     public void visit(ErrorMessage n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         instructions.add(new sparrowv.ErrorMessage(n.msg));
     }
@@ -409,7 +411,7 @@ public class Translator extends DepthFirst {
     public void visit(Goto n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
         
         instructions.add(new sparrowv.Goto(n.label));
     }
@@ -418,7 +420,7 @@ public class Translator extends DepthFirst {
     public void visit(IfGoto n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         String cond = n.condition.toString();
         String condReg = isSpilled(cond) ? "t0" : getRegisterOrSpill(cond);
@@ -432,7 +434,7 @@ public class Translator extends DepthFirst {
     public void visit(Call n) {
         currLine++;
 
-        System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
+        // System.err.println("Translating function: " + currentFunction + ", at Sparrow line: " + currLine);
 
         // Save all caller-saved and argument registers before call
         String callee = n.callee.toString();
@@ -440,6 +442,12 @@ public class Translator extends DepthFirst {
 
         String calleeReg = isSpilled(callee) ? "t2" : getRegisterOrSpill(callee);
         String lhsReg = isSpilled(lhs) ? "t1" : getRegisterOrSpill(lhs);
+
+        Set<String> ignoreRegs = new HashSet<>();
+
+        if (!isSpilled(lhs)) {
+            ignoreRegs.add(lhsReg);
+        }
 
         // Get live caller and args registers after the call
         Set<String> liveCaller = CALLER_SET.stream()
@@ -451,8 +459,21 @@ public class Translator extends DepthFirst {
             liveArgs.addAll(aRegs.get(currentFunction).values());
         }
 
-        saveRestore(liveCaller, true);
-        saveRestore(liveArgs, true);
+        // (1) compute the sets as usual:
+Set<String> liveCallerRegs = CALLER_SET.stream()
+                                       .filter(this::livePastNow)
+                                       .collect(Collectors.toSet());
+Set<String> liveArgRegs    = ARG_REGS.stream()
+                                     .filter(this::livePastNow)
+                                     .collect(Collectors.toSet());
+
+// (2) print them out for debugging:
+System.err.println("CALL @S‐line " + currLine
+    + "  liveCallerRegs=" + liveCallerRegs
+    + "  liveArgRegs="    + liveArgRegs);
+
+        saveRestore(liveCaller, ignoreRegs, true);
+        saveRestore(liveArgs, ignoreRegs, true);
 
         if (isSpilled(callee))
             instructions.add(new sparrowv.Move_Reg_Id(new Register(calleeReg), n.callee));
@@ -496,16 +517,10 @@ public class Translator extends DepthFirst {
 
         if (isSpilled(lhs)) {
             instructions.add(new sparrowv.Move_Id_Reg(n.lhs, new Register(lhsReg)));
-        } else {
-            instructions.add(new sparrowv.Move_Reg_Reg(new Register("t1"), new Register(lhsReg)));
         }
 
         // Restore all caller-saved and argument registers after call
-        saveRestore(liveCaller, false);
-        saveRestore(liveArgs, false);
-
-        if (!isSpilled(lhs)) {
-            instructions.add(new sparrowv.Move_Reg_Reg(new Register(lhsReg), new Register("t1")));
-        }
+        saveRestore(liveCaller, ignoreRegs, false);
+        saveRestore(liveArgs, ignoreRegs, false);
     }
 }

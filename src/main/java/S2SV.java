@@ -1,8 +1,6 @@
 import IR.SparrowParser;
 import IR.syntaxtree.Node;
-import IR.visitor.DepthFirstVisitor;
 import IR.visitor.SparrowConstructor;
-import sparrow.Program;
 
 public class S2SV {
     public static void main(String[] args) throws Exception {
