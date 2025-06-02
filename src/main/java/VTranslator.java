@@ -26,95 +26,96 @@ import sparrowv.visitor.DepthFirst;
 
 public class VTranslator extends DepthFirst {
 
-    StringBuilder riscProgram;  // RISC-V program
+    StringBuilder riscProgram;              // RISC-V program
+    String currentFunction;
 
     public VTranslator() {
         riscProgram = new StringBuilder();
     }
 
-    // Sparrow-V AST components
+    /* Sparrow-V AST components */
 
     /*   List<FunctionDecl> funDecls; */
     @Override
     public void visit(Program n) {
         /* Add program header */ 
-        riscProgram.append(".equiv @sbrk, 9\n"); // .equiv @sbrk, 9
-        riscProgram.append(".equiv @print_string, 4\n"); // .equiv @print_string, 4
-        riscProgram.append(".equiv @print_char, 11\n"); // .equiv @print_char, 11
-        riscProgram.append(".equiv @print_int, 1\n"); // .equiv @print_int, 1
-        riscProgram.append(".equiv @exit, 10\n"); // .equiv @exit, 10
-        riscProgram.append(".equiv @exit2, 17\n"); // .equiv @exit2, 17
+        riscProgram.append(".equiv @sbrk, 9\n");                                        // .equiv @sbrk, 9
+        riscProgram.append(".equiv @print_string, 4\n");                                // .equiv @print_string, 4
+        riscProgram.append(".equiv @print_char, 11\n");                                 // .equiv @print_char, 11
+        riscProgram.append(".equiv @print_int, 1\n");                                   // .equiv @print_int, 1
+        riscProgram.append(".equiv @exit, 10\n");                                       // .equiv @exit, 10
+        riscProgram.append(".equiv @exit2, 17\n");                                      // .equiv @exit2, 17
         riscProgram.append("\n");
 
-        riscProgram.append(".text\n"); // .text
+        riscProgram.append(".text\n");                                                  // .text
         riscProgram.append("\n");
 
         /* RISC-V entry point */
-        riscProgram.append(".globl main\n"); // .globl main
-        riscProgram.append("\tjal Main\n"); // jal Main
-        riscProgram.append("\t li a0, @exit\n"); // li a0, @exit
-        riscProgram.append("\tecall\n"); // ecall
+        riscProgram.append(".globl main\n");                                            // .globl main
+        riscProgram.append("\tjal Main\n");                                             // jal Main
+        riscProgram.append("\t li a0, @exit\n");                                        // li a0, @exit
+        riscProgram.append("\tecall\n");                                                // ecall
         riscProgram.append("\n");
 
         /* Sparrow-V Main function */
-        riscProgram.append(".globl Main\n"); // .globl Main
-        riscProgram.append("Main:\n"); // Main:
+        riscProgram.append(".globl Main\n");                                            // .globl Main
+        riscProgram.append("Main:\n");                                                  // Main:
         
         for (FunctionDecl fd : n.funDecls) {
             fd.accept(this);
         }
 
         /* Print */
-        riscProgram.append(".globl print\n"); // .globl print
-        riscProgram.append("print:\n"); // print:
-        riscProgram.append("\tmv a1, a0\n"); // mv a1, a0
-        riscProgram.append("\tli a0, @print_int\n"); // li a0, @print_int
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("\tli a1, 10\n"); // li a1, 10
-        riscProgram.append("\tli a0, @print_char\n"); // li a0, @print_char
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("\tjr ra\n"); // jr ra
+        riscProgram.append(".globl print\n");                                           // .globl print
+        riscProgram.append("print:\n");                                                 // print:
+        riscProgram.append("\tmv a1, a0\n");                                            // mv a1, a0
+        riscProgram.append("\tli a0, @print_int\n");                                    // li a0, @print_int
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("\tli a1, 10\n");                                            // li a1, 10
+        riscProgram.append("\tli a0, @print_char\n");                                   // li a0, @print_char
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("\tjr ra\n");                                                // jr ra
         riscProgram.append("\n");
 
         /* Error */
-        riscProgram.append(".globl error\n"); // .globl error
-        riscProgram.append("error:\n"); // error:
-        riscProgram.append("\tmv a1, a0\n"); // mv a1, a0
-        riscProgram.append("\tli a0, @print_string\n"); // li a0, @print_string
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("\tli a1, 10\n"); // li a1, 10
-        riscProgram.append("\tli a0, @print_char\n"); // li a0, @print_char
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("\tli a0, @exit\n"); // li a0, @exit
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("abort_17:\n"); // abort_17:
-        riscProgram.append("\t j abort_17\n"); // j abort_17
+        riscProgram.append(".globl error\n");                                           // .globl error
+        riscProgram.append("error:\n");                                                 // error:
+        riscProgram.append("\tmv a1, a0\n");                                            // mv a1, a0
+        riscProgram.append("\tli a0, @print_string\n");                                 // li a0, @print_string
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("\tli a1, 10\n");                                            // li a1, 10
+        riscProgram.append("\tli a0, @print_char\n");                                   // li a0, @print_char
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("\tli a0, @exit\n");                                         // li a0, @exit
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("abort_17:\n");                                              // abort_17:
+        riscProgram.append("\t j abort_17\n");                                          // j abort_17
         riscProgram.append("\n");
 
         /* Alloc */
-        riscProgram.append(".globl alloc\n"); // .globl alloc
-        riscProgram.append("alloc:\n"); // alloc:
-        riscProgram.append("\tmv a1, a0\n"); // mv a1, a0
-        riscProgram.append("\tli a0, @sbrk\n"); // li a0, @sbrk
-        riscProgram.append("\tecall\n"); // ecall
-        riscProgram.append("\tjr ra\n"); // jr ra
+        riscProgram.append(".globl alloc\n");                                           // .globl alloc
+        riscProgram.append("alloc:\n");                                                 // alloc:
+        riscProgram.append("\tmv a1, a0\n");                                            // mv a1, a0
+        riscProgram.append("\tli a0, @sbrk\n");                                         // li a0, @sbrk
+        riscProgram.append("\tecall\n");                                                // ecall
+        riscProgram.append("\tjr ra\n");                                                // jr ra
         riscProgram.append("\n");
         
-        riscProgram.append(".data\n"); // .data
+        riscProgram.append(".data\n");                                                  // .data
         riscProgram.append("\n");
 
         /* Null pointer */
-        riscProgram.append(".globl msg_nullptr\n"); // .globl msg_nullptr
-        riscProgram.append("msg_nullptr:\n"); // msg_nullptr
-        riscProgram.append("\t.asciiz \"null pointer\"\n"); // .asciiz "null pointer"
-        riscProgram.append("\t.align 2\n"); // .align 2
+        riscProgram.append(".globl msg_nullptr\n");                                     // .globl msg_nullptr
+        riscProgram.append("msg_nullptr:\n");                                           // msg_nullptr
+        riscProgram.append("\t.asciiz \"null pointer\"\n");                             // .asciiz "null pointer"
+        riscProgram.append("\t.align 2\n");                                             // .align 2
         riscProgram.append("\n");
 
         /* Array index out of bounds */
-        riscProgram.append(".globl msg_array_oob\n"); // .globl msg_array_oob
-        riscProgram.append("msg_array_oob:\n"); // msg_array_oob
-        riscProgram.append(".asciiz \"array index out of bounds\"\n"); // .asciiz "array index out of bounds"
-        riscProgram.append(".align 2\n"); // .align 2
+        riscProgram.append(".globl msg_array_oob\n");                                   // .globl msg_array_oob
+        riscProgram.append("msg_array_oob:\n");                                         // msg_array_oob
+        riscProgram.append(".asciiz \"array index out of bounds\"\n");                  // .asciiz "array index out of bounds"
+        riscProgram.append(".align 2\n");                                               // .align 2
     }
 
     /*   Program parent;
