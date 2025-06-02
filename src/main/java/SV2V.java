@@ -16,9 +16,13 @@ public class SV2V {
         root.accept(constructor);
         Program program = constructor.getProgram();
 
-        VTranslator tr = new VTranslator();
+        // Pre-compute stack offsets and stack frame size
+        OffsetVisitor ov = new OffsetVisitor();
+        ov.visit(program);
+
+        // Translate Sparrow-V to RISC-V
+        VTranslator tr = new VTranslator(ov.funcVarOffsets);
         tr.visit(program);
         System.out.println(tr.riscProgram.toString());
-        // System.err.println(program.toString());
     }
 }
