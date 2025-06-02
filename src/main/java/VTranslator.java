@@ -2,7 +2,6 @@
 import java.util.HashMap;
 import java.util.Map;
 
-import IR.token.Identifier;
 import sparrowv.Add;
 import sparrowv.Alloc;
 import sparrowv.Block;
@@ -130,8 +129,9 @@ public class VTranslator extends DepthFirst {
      *   Block block; */
     @Override
     public void visit(FunctionDecl n) {
-        // TODO
+        // TODO: Adjust sp and store fp
         currentFunction = n.functionName.toString();
+
         if (isMain) {
             /* Sparrow-V Main function */
             riscProgram.append(".globl Main\n");                                        // .globl Main
@@ -142,17 +142,25 @@ public class VTranslator extends DepthFirst {
             String secondInstr = currentFunction + ":\n";
 
             /* Build RISC-V instructions */
-            riscProgram.append(firstInstr);
-            riscProgram.append(secondInstr);
-
-            /* Handle stack and frame pointers */
-
+            riscProgram.append(firstInstr);                                                 // .globl Foo
+            riscProgram.append(secondInstr);                                                // Foo:
         }
 
-        for (Identifier fp : n.formalParameters) {
-            // ... fp ...
+        /* Load local variables and arguments to new stack activation record */
+        Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
+
+        for (Map.Entry<String, Integer> entry : varOffsets.entrySet()) {
+            String var = entry.getKey();
+            int offset = entry.getValue();
+
+            String instr = "sw " + var + ", " + offset + "(fp)\n";                          // sw v0, -4(fp)
+            riscProgram.append(instr);                                                      // sw arg1, 4(fp)
         }
+
+        /* Process instruction in function block */
         n.block.accept(this);
+
+        /* Deallocate activation record by moving sp */
     }
 
     /*   FunctionDecl parent;
@@ -178,7 +186,7 @@ public class VTranslator extends DepthFirst {
         int rhs = n.rhs;
 
         /* Build RISC-V instruction */
-        String instr = "\tli " + lhs + ", " + rhs + "\n";                               // li t0, 1
+        String instr = "\tli " + lhs + ", " + rhs + "\n";                                   // li t0, 1
         riscProgram.append(instr);
     }
 
@@ -191,7 +199,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tla " + lhs + ", " + rhs + "\n";                              // la t0, Foo
+        String instr = "\tla " + lhs + ", " + rhs + "\n";                                   // la t0, Foo
         riscProgram.append(instr);
     }
 
@@ -206,7 +214,7 @@ public class VTranslator extends DepthFirst {
         String arg2 = n.arg2.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tadd " + lhs + ", " + arg1 + ", " + arg2 + "\n";               // add t0, t1, t2
+        String instr = "\tadd " + lhs + ", " + arg1 + ", " + arg2 + "\n";                   // add t0, t1, t2
 
         riscProgram.append(instr);
     }
@@ -222,7 +230,7 @@ public class VTranslator extends DepthFirst {
         String arg2 = n.arg2.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tsub " + lhs + ", " + arg1 + ", " + arg2 + "\n";               // sub t0, t1, t2
+        String instr = "\tsub " + lhs + ", " + arg1 + ", " + arg2 + "\n";                   // sub t0, t1, t2
 
         riscProgram.append(instr);
     }
@@ -238,7 +246,7 @@ public class VTranslator extends DepthFirst {
         String arg2 = n.arg2.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tmul " + lhs + ", " + arg1 + ", " + arg2 + "\n";               // mul t0, t1, t2
+        String instr = "\tmul " + lhs + ", " + arg1 + ", " + arg2 + "\n";                   // mul t0, t1, t2
 
         riscProgram.append(instr);
     }
@@ -254,7 +262,7 @@ public class VTranslator extends DepthFirst {
         String arg2 = n.arg2.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tslt " + lhs + ", " + arg1 + ", " + arg2 + "\n";               // slt t0, t1, t2
+        String instr = "\tslt " + lhs + ", " + arg1 + ", " + arg2 + "\n";                   // slt t0, t1, t2
 
         riscProgram.append(instr);
     }
@@ -270,7 +278,7 @@ public class VTranslator extends DepthFirst {
         int offset = n.offset;
 
         /* Build RISC-V instruction */
-        String instr = "\tlw " + lhs + ", " + offset + "(" + base + ")" + "\n";         // lw t0, 4(t1)
+        String instr = "\tlw " + lhs + ", " + offset + "(" + base + ")" + "\n";             // lw t0, 4(t1)
 
         riscProgram.append(instr);
     }
@@ -286,7 +294,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tsw " + rhs + ", " + offset + "(" + base + ")" + "\n";         // sw t1, 4(t0)
+        String instr = "\tsw " + rhs + ", " + offset + "(" + base + ")" + "\n";             // sw t1, 4(t0)
 
         riscProgram.append(instr);
     }
@@ -300,7 +308,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Build RISC-V instruction */
-        String instr = "\tmov " + lhs + ", " + rhs + "\n";                              // mov t0, t1
+        String instr = "\tmov " + lhs + ", " + rhs + "\n";                                  // mov t0, t1
 
         riscProgram.append(instr);
     }
@@ -329,9 +337,9 @@ public class VTranslator extends DepthFirst {
         String firstInstr = "\tmv a0, " + size + "\n";
         String lastInstr = "\tmv " + lhs + ", a0" + "\n";
 
-        riscProgram.append(firstInstr);                                                 // mv a0, t1
-        riscProgram.append("\tjal alloc\n");                                        // jal alloc
-        riscProgram.append(lastInstr);                                                  // mv t0, a0
+        riscProgram.append(firstInstr);                                                     // mv a0, t1
+        riscProgram.append("\tjal alloc\n");                                            // jal alloc
+        riscProgram.append(lastInstr);                                                      // mv t0, a0
     }
 
     /*   Register content; */
@@ -342,16 +350,16 @@ public class VTranslator extends DepthFirst {
 
         /* Build RISC-V instructions */
         String instr = "mv a0, " + content + "\n";
-        riscProgram.append(instr);                                                      // mv a0, t0
-        riscProgram.append("\tjal print\n");                                        // jal print
+        riscProgram.append(instr);                                                          // mv a0, t0
+        riscProgram.append("\tjal print\n");                                            // jal print
     }
 
     /*   String msg; */
     @Override
     public void visit(ErrorMessage n) {
         /* Build RISC-V instructions */
-        riscProgram.append("\tla a0, null_pointer\n");                              // la a0, null_pointer
-        riscProgram.append("\tjal error\n");                                        // jal error
+        riscProgram.append("\tla a0, null_pointer\n");                                  // la a0, null_pointer
+        riscProgram.append("\tjal error\n");                                            // jal error
     }
 
     /*   Label label; */
