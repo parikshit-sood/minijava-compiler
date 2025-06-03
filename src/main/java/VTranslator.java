@@ -179,8 +179,10 @@ public class VTranslator extends DepthFirst {
         /* Deconstruct Sparrow-V instruction components */
         String label = n.label.toString();
 
+        String mangled = currentFunction + "_" + label;
+
         /* Build RISC-V instruction */
-        String instr = currentFunction + label + ":\n";
+        String instr = mangled + ":\n";
         riscProgram.append(instr);
     }
 
@@ -395,14 +397,31 @@ public class VTranslator extends DepthFirst {
         /* Deconstruct Sparrow-V instruction component */
         String label = n.label.toString();
 
+        String mangled = currentFunction + "_" + label;
+
         /* Build RISC-V instruction */
-        String instr = "  jal " + currentFunction + label + "\n";
+        String instr = "  jal " + mangled + "\n";
         riscProgram.append(instr);
     }
 
     /*   Register condition;
      *   Label label; */
+    @Override
     public void visit(IfGoto n) {
+        /* Deconstruct Sparrow-V instruction component */
+        String cond = n.condition.toString();
+        String label = n.label.toString();
+
+        String mangled = currentFunction + "_" + label;
+
+        /* Build RISC-V instructions */
+        String firstInstr = "  bnez " + cond + ", " + mangled + "_no_jump" + "\n";
+        String secondInstr = "  jal " + mangled + "\n";
+        String thirdInstr = mangled + "_no_jump:\n";
+
+        riscProgram.append(firstInstr);
+        riscProgram.append(secondInstr);
+        riscProgram.append(thirdInstr);
     }
 
     /*   Register lhs;
