@@ -11,11 +11,13 @@ import sparrowv.visitor.DepthFirst;
 
 public class OffsetVisitor extends DepthFirst{
     Map<String, Map<String, Integer>> funcVarOffsets;       // function name -> identifier -> stack offset
+    Map<String, Integer> funcFrameSizes;
     String currentFunction;
     int varOffset;
 
     public OffsetVisitor() {
         funcVarOffsets = new HashMap<>();
+        funcFrameSizes = new HashMap<>();
     }
 
     /*   Program parent;
@@ -42,6 +44,15 @@ public class OffsetVisitor extends DepthFirst{
         // Visit instructions, searching for local parameters
         varOffset = -12;
         n.block.accept(this);
+
+        // Store return value
+        String returnId = n.block.return_id.toString();
+        funcVarOffsets.get(currentFunction).put(returnId, varOffset);
+
+        // Store stack frame size for this function
+        // Add one more slot for return value
+        varOffset -= 4;
+        funcFrameSizes.put(currentFunction, -1 * varOffset);
     }
 
     /*   Identifier lhs;

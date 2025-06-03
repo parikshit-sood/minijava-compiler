@@ -4,13 +4,11 @@ import java.util.Map;
 
 import sparrowv.Add;
 import sparrowv.Alloc;
-import sparrowv.Block;
 import sparrowv.Call;
 import sparrowv.ErrorMessage;
 import sparrowv.FunctionDecl;
 import sparrowv.Goto;
 import sparrowv.IfGoto;
-import sparrowv.Instruction;
 import sparrowv.LabelInstr;
 import sparrowv.LessThan;
 import sparrowv.Load;
@@ -32,10 +30,12 @@ public class VTranslator extends DepthFirst {
     private String currentFunction;
     private boolean isMain;
     private final Map<String, Map<String, Integer>> funcVarOffsets;
+    private final Map<String, Integer> funcFrameSizes;
 
-    public VTranslator(Map<String, Map<String, Integer>> offsetsMap) {
-        riscProgram = new StringBuilder();
-        funcVarOffsets = new HashMap<>(offsetsMap);
+    public VTranslator(Map<String, Map<String, Integer>> offsetsMap, Map<String, Integer> frameSizes) {
+        this.riscProgram = new StringBuilder();
+        this.funcVarOffsets = new HashMap<>(offsetsMap);
+        this.funcFrameSizes = new HashMap<>(frameSizes);
     }
 
     /* Sparrow-V AST components */
@@ -56,7 +56,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* RISC-V entry point */
-        riscProgram.append(".globl main\n");                                            // .globl main
+        riscProgram.append("\n.globl  main\n");                                        // .globl  main
         riscProgram.append("  jal Main\n");                                             // jal Main
         riscProgram.append("  li a0, @exit\n");                                         // li a0, @exit
         riscProgram.append("  ecall\n");                                                // ecall
@@ -71,7 +71,7 @@ public class VTranslator extends DepthFirst {
         }
 
         /* Print */
-        riscProgram.append(".globl print\n");                                           // .globl print
+        riscProgram.append("\n.globl  print\n");                                       // .globl  print
         riscProgram.append("print:\n");                                                 // print:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @print_int\n");                                    // li a0, @print_int
@@ -83,7 +83,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Error */
-        riscProgram.append(".globl error\n");                                           // .globl error
+        riscProgram.append("\n.globl  error\n");                                       // .globl  error
         riscProgram.append("error:\n");                                                 // error:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @print_string\n");                                 // li a0, @print_string
@@ -98,7 +98,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Alloc */
-        riscProgram.append(".globl alloc\n");                                           // .globl alloc
+        riscProgram.append("\n.globl  alloc\n");                                       // .globl  alloc
         riscProgram.append("alloc:\n");                                                 // alloc:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @sbrk\n");                                         // li a0, @sbrk
@@ -110,17 +110,17 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Null pointer */
-        riscProgram.append(".globl msg_nullptr\n");                                     // .globl msg_nullptr
+        riscProgram.append("\n.globl  msg_nullptr\n");                                 // .globl  msg_nullptr
         riscProgram.append("msg_nullptr:\n");                                           // msg_nullptr
         riscProgram.append("  .asciiz \"null pointer\"\n");                             // .asciiz "null pointer"
         riscProgram.append("  .align 2\n");                                             // .align 2
         riscProgram.append("\n");
 
         /* Array index out of bounds */
-        riscProgram.append(".globl msg_array_oob\n");                                   // .globl msg_array_oob
+        riscProgram.append("\n.globl  msg_array_oob\n");                               // .globl  msg_array_oob
         riscProgram.append("msg_array_oob:\n");                                         // msg_array_oob
-        riscProgram.append("  .asciiz \"array index out of bounds\"\n");                  // .asciiz "array index out of bounds"
-        riscProgram.append("  .align 2\n");                                               // .align 2
+        riscProgram.append("  .asciiz \"array index out of bounds\"\n");                // .asciiz "array index out of bounds"
+        riscProgram.append("  .align 2\n");                                             // .align 2
     }
 
     /*   Program parent;
@@ -134,17 +134,27 @@ public class VTranslator extends DepthFirst {
 
         if (isMain) {
             /* Sparrow-V Main function */
-            riscProgram.append(".globl Main\n");                                        // .globl Main
+            riscProgram.append("\n.globl  Main\n");                                    // .globl  Main
             riscProgram.append("Main:\n");                                              // Main:
         } else {
             /* Other Sparrow-V function */
-            String firstInstr = ".globl " + currentFunction + "\n";
+            String firstInstr = "\n.globl  " + currentFunction + "\n";
             String secondInstr = currentFunction + ":\n";
 
             /* Build RISC-V instructions */
-            riscProgram.append(firstInstr);                                                 // .globl Foo
+            riscProgram.append(firstInstr);                                                 // .globl  Foo
             riscProgram.append(secondInstr);                                                // Foo:
         }
+
+        /* Create new activation record */
+        int frameSize = funcFrameSizes.get(currentFunction);
+        String storeFrameSize = "  li t6, " + frameSize + "\n";
+
+        riscProgram.append("  sw fp, -8(sp)\n");
+        riscProgram.append("  mv fp, sp\n");
+        riscProgram.append(storeFrameSize);
+        riscProgram.append("  sub sp, sp, t6\n");
+        riscProgram.append("  sw ra, -4(fp)\n");
 
         /* Load local variables and arguments to new stack activation record */
         Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
@@ -153,24 +163,25 @@ public class VTranslator extends DepthFirst {
             String var = entry.getKey();
             int offset = entry.getValue();
 
-            String instr = "  sw " + var + ", " + offset + "(fp)\n";                          // sw v0, -4(fp)
+            String instr = "  sw " + var + ", " + offset + "(fp)\n";                        // sw v0, -4(fp)
             riscProgram.append(instr);                                                      // sw arg1, 4(fp)
         }
 
         /* Process instruction in function block */
         n.block.accept(this);
 
-        /* Deallocate activation record by moving sp */
-    }
+        /* Store return value */
+        int returnOffset = varOffsets.get(n.block.return_id.toString());
+        String storeReturn = "  lw a0, " + returnOffset + "(fp)\n";
+        riscProgram.append(storeReturn);
 
-    /*   FunctionDecl parent;
-     *   List<Instruction> instructions;
-     *   Identifier return_id; */
-    @Override
-    public void visit(Block n) {
-        for (Instruction i : n.instructions) {
-            i.accept(this);
-        }
+        /* Deallocate local variables and arguments from activation record */
+        String restoreSp = "  addi sp, sp, " + frameSize + "\n";
+
+        riscProgram.append("  lw ra, -4(fp)\n");
+        riscProgram.append("  lw fp, -8(fp)\n");
+        riscProgram.append(restoreSp);
+        riscProgram.append("  jr ra\n");
     }
 
     /*   Label label; */
@@ -428,6 +439,7 @@ public class VTranslator extends DepthFirst {
      *   Register callee;
      *   List<Identifier> args; */
     public void visit(Call n) {
+        
     }
 
 }
