@@ -174,7 +174,14 @@ public class VTranslator extends DepthFirst {
     }
 
     /*   Label label; */
+    @Override
     public void visit(LabelInstr n) {
+        /* Deconstruct Sparrow-V instruction components */
+        String label = n.label.toString();
+
+        /* Build RISC-V instruction */
+        String instr = currentFunction + label + ":\n";
+        riscProgram.append(instr);
     }
 
     /*   Register lhs;
@@ -315,14 +322,34 @@ public class VTranslator extends DepthFirst {
 
     /*   Identifier lhs;
      *   Register rhs; */
+    @Override
     public void visit(Move_Id_Reg n) {
-        // TODO
+        /* Deconstruct Sparrow-V instruction components */
+        String lhs = n.lhs.toString();
+        String rhs = n.rhs.toString();
+
+        /* Get offset for this identifier */
+        int offset = funcVarOffsets.get(currentFunction).get(lhs);
+
+        /* Build RISC-V instruction */
+        String instr = "\tsw " + rhs + ", " + offset + "(fp)\n";
+        riscProgram.append(instr);
     }
 
     /*   Register lhs;
      *   Identifier rhs; */
+    @Override
     public void visit(Move_Reg_Id n) {
-        // TODO
+        /* Deconstruct Sparrow-V instruction comoennts */
+        String lhs = n.lhs.toString();
+        String rhs = n.rhs.toString();
+
+        /* Get offset for this identifier */
+        int offset = funcVarOffsets.get(currentFunction).get(rhs);
+
+        /* Build RISC-V instruction */
+        String instr = "\tlw " + lhs + ", " + offset + "(fp)\n";
+        riscProgram.append(instr);
     }
 
     /*   Register lhs;
