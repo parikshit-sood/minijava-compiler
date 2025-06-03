@@ -29,13 +29,15 @@ public class VTranslator extends DepthFirst {
     public StringBuilder riscProgram;              // RISC-V program
     private String currentFunction;
     private boolean isMain;
+    private final Map<String, Map<String, Integer>> funcArgOffsets;
     private final Map<String, Map<String, Integer>> funcVarOffsets;
     private final Map<String, Integer> funcFrameSizes;
 
-    public VTranslator(Map<String, Map<String, Integer>> offsetsMap, Map<String, Integer> frameSizes) {
+    public VTranslator(Map<String, Map<String, Integer>> varOffsets, Map<String, Integer> frameSizes, Map<String, Map<String, Integer>> argOffsets) {
         this.riscProgram = new StringBuilder();
-        this.funcVarOffsets = new HashMap<>(offsetsMap);
+        this.funcVarOffsets = new HashMap<>(varOffsets);
         this.funcFrameSizes = new HashMap<>(frameSizes);
+        this.funcArgOffsets = new HashMap<>(argOffsets);
     }
 
     /* Sparrow-V AST components */
@@ -134,11 +136,11 @@ public class VTranslator extends DepthFirst {
 
         if (isMain) {
             /* Sparrow-V Main function */
-            riscProgram.append("\n.globl  Main\n");                                    // .globl  Main
+            riscProgram.append("\n.globl Main\n");                                    // .globl  Main
             riscProgram.append("Main:\n");                                              // Main:
         } else {
             /* Other Sparrow-V function */
-            String firstInstr = "\n.globl  " + currentFunction + "\n";
+            String firstInstr = "\n.globl " + currentFunction + "\n";
             String secondInstr = currentFunction + ":\n";
 
             /* Build RISC-V instructions */
@@ -147,6 +149,7 @@ public class VTranslator extends DepthFirst {
         }
 
         /* Create new activation record */
+        /* TODO: Fix this. Check first pass and stack offsets. Frame size looks too large for FacComputeFac (38 instead of 32)*/
         int frameSize = funcFrameSizes.get(currentFunction);
         String storeFrameSize = "  li t6, " + frameSize + "\n";
 
@@ -156,24 +159,22 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("  sub sp, sp, t6\n");
         riscProgram.append("  sw ra, -4(fp)\n");
 
+        /* TODO: Fix this. Double check if needed in the output since example does not have it. */
         /* Load local variables and arguments to new stack activation record */
-        Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
+        // Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
 
-        for (Map.Entry<String, Integer> entry : varOffsets.entrySet()) {
-            String var = entry.getKey();
-            int offset = entry.getValue();
+        // for (Map.Entry<String, Integer> entry : varOffsets.entrySet()) {
+        //     String var = entry.getKey();
+        //     int offset = entry.getValue();
 
-            String instr = "  sw " + var + ", " + offset + "(fp)\n";                        // sw v0, -4(fp)
-            riscProgram.append(instr);                                                      // sw arg1, 4(fp)
-        }
+        //     String instr = "  sw " + var + ", " + offset + "(fp)\n";                        // sw v0, -4(fp)
+        //     riscProgram.append(instr);                                                      // sw arg1, 4(fp)
+        // }
 
         /* Process instruction in function block */
         n.block.accept(this);
 
-        /* Store return value */
-        int returnOffset = varOffsets.get(n.block.return_id.toString());
-        String storeReturn = "  lw a0, " + returnOffset + "(fp)\n";
-        riscProgram.append(storeReturn);
+        /* TODO: Handle returns using a0 register */
 
         /* Deallocate local variables and arguments from activation record */
         String restoreSp = "  addi sp, sp, " + frameSize + "\n";
@@ -342,7 +343,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Get offset for this identifier */
-        int offset = funcVarOffsets.get(currentFunction).get(lhs);
+        int offset = funcVarOffsets.get(currentFunction).containsKey(lhs) ? funcVarOffsets.get(currentFunction).get(lhs) : funcArgOffsets.get(currentFunction).get(lhs);
 
         /* Build RISC-V instruction */
         String instr = "  sw " + rhs + ", " + offset + "(fp)\n";
@@ -358,7 +359,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Get offset for this identifier */
-        int offset = funcVarOffsets.get(currentFunction).get(rhs);
+        int offset = funcVarOffsets.get(currentFunction).containsKey(rhs) ? funcVarOffsets.get(currentFunction).get(rhs) : funcArgOffsets.get(currentFunction).get(rhs);
 
         /* Build RISC-V instruction */
         String instr = "  lw " + lhs + ", " + offset + "(fp)\n";
