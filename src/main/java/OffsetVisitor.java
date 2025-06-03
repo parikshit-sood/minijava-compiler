@@ -9,7 +9,7 @@ import sparrowv.Move_Reg_Id;
 import sparrowv.visitor.DepthFirst;
 
 public class OffsetVisitor extends DepthFirst{
-    Map<String, FunctionMetadata> fmd;
+    Map<String, FunctionStruct> fmd;
     String currentFunction;
     int varOffset;
 
@@ -18,7 +18,7 @@ public class OffsetVisitor extends DepthFirst{
     }
 
     private boolean isUnique(String id) {
-        FunctionMetadata currFunc = fmd.get(currentFunction);
+        FunctionStruct currFunc = fmd.get(currentFunction);
         return !(currFunc.hasArg(id)) && !(currFunc.hasVar(id));
     }
 
@@ -31,7 +31,7 @@ public class OffsetVisitor extends DepthFirst{
         // Initialize function metadata
         // Process function name
         currentFunction = n.functionName.toString();
-        fmd.put(currentFunction, new FunctionMetadata());
+        fmd.put(currentFunction, new FunctionStruct());
 
         Map<String, Integer> funcArgOffsets = fmd.get(currentFunction).getArgOffsets();
 
@@ -60,7 +60,7 @@ public class OffsetVisitor extends DepthFirst{
         // If this is first instance of a variable, give it a stack offset
         Map<String, Integer> funcVarOffsets = fmd.get(currentFunction).getVarOffsets();
         if (isUnique(varName)) {
-            funcVarOffsets.put(varName, varOffset);
+            funcVarOffsets.put(varName, varOffset - 12);
             varOffset -= 4;
         }
     }
@@ -74,7 +74,7 @@ public class OffsetVisitor extends DepthFirst{
         // If this is first instance of a variable, give it a stack offset
         Map<String, Integer> funcVarOffsets = fmd.get(currentFunction).getVarOffsets();
         if (isUnique(varName)) {
-            funcVarOffsets.put(varName, varOffset);
+            funcVarOffsets.put(varName, varOffset - 12);
             varOffset -= 4;
         }
     }

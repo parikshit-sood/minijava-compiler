@@ -28,11 +28,11 @@ public class VTranslator extends DepthFirst {
 
     public StringBuilder riscProgram;              // RISC-V program
     private boolean isMain;
-    private final Map<String, FunctionMetadata> fmd;
+    private final Map<String, FunctionStruct> fmd;
     private String currentFunction;
-    private FunctionMetadata currFuncMetadata;
+    private FunctionStruct currFuncMetadata;
 
-    public VTranslator(Map<String, FunctionMetadata> fmd) {
+    public VTranslator(Map<String, FunctionStruct> fmd) {
         this.riscProgram = new StringBuilder();
         this.fmd = new HashMap<>(fmd);
     }
@@ -55,7 +55,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* RISC-V entry point */
-        riscProgram.append("\n.globl  main\n");                                        // .globl  main
+        riscProgram.append("\n.globl main\n");                                          // .globl main
         riscProgram.append("  jal Main\n");                                             // jal Main
         riscProgram.append("  li a0, @exit\n");                                         // li a0, @exit
         riscProgram.append("  ecall\n");                                                // ecall
@@ -70,7 +70,7 @@ public class VTranslator extends DepthFirst {
         }
 
         /* Print */
-        riscProgram.append("\n.globl  print\n");                                       // .globl  print
+        riscProgram.append("\n.globl print\n");                                         // .globl print
         riscProgram.append("print:\n");                                                 // print:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @print_int\n");                                    // li a0, @print_int
@@ -82,7 +82,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Error */
-        riscProgram.append("\n.globl  error\n");                                       // .globl  error
+        riscProgram.append("\n.globl error\n");                                         // .globl error
         riscProgram.append("error:\n");                                                 // error:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @print_string\n");                                 // li a0, @print_string
@@ -97,7 +97,7 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Alloc */
-        riscProgram.append("\n.globl  alloc\n");                                       // .globl  alloc
+        riscProgram.append("\n.globl alloc\n");                                         // .globl alloc
         riscProgram.append("alloc:\n");                                                 // alloc:
         riscProgram.append("  mv a1, a0\n");                                            // mv a1, a0
         riscProgram.append("  li a0, @sbrk\n");                                         // li a0, @sbrk
@@ -109,14 +109,14 @@ public class VTranslator extends DepthFirst {
         riscProgram.append("\n");
 
         /* Null pointer */
-        riscProgram.append("\n.globl  msg_nullptr\n");                                 // .globl  msg_nullptr
+        riscProgram.append("\n.globl msg_nullptr\n");                                   // .globl msg_nullptr
         riscProgram.append("msg_nullptr:\n");                                           // msg_nullptr
         riscProgram.append("  .asciiz \"null pointer\"\n");                             // .asciiz "null pointer"
         riscProgram.append("  .align 2\n");                                             // .align 2
         riscProgram.append("\n");
 
         /* Array index out of bounds */
-        riscProgram.append("\n.globl  msg_array_oob\n");                               // .globl  msg_array_oob
+        riscProgram.append("\n.globl msg_array_oob\n");                                 // .globl msg_array_oob
         riscProgram.append("msg_array_oob:\n");                                         // msg_array_oob
         riscProgram.append("  .asciiz \"array index out of bounds\"\n");                // .asciiz "array index out of bounds"
         riscProgram.append("  .align 2\n");                                             // .align 2
@@ -134,7 +134,7 @@ public class VTranslator extends DepthFirst {
 
         if (isMain) {
             /* Sparrow-V Main function */
-            riscProgram.append("\n.globl Main\n");                                    // .globl  Main
+            riscProgram.append("\n.globl Main\n");                                      // .globl Main
             riscProgram.append("Main:\n");                                              // Main:
         } else {
             /* Other Sparrow-V function */
@@ -142,7 +142,7 @@ public class VTranslator extends DepthFirst {
             String secondInstr = currentFunction + ":\n";
 
             /* Build RISC-V instructions */
-            riscProgram.append(firstInstr);                                                 // .globl  Foo
+            riscProgram.append(firstInstr);                                                 // .globl Foo
             riscProgram.append(secondInstr);                                                // Foo:
         }
 

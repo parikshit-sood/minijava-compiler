@@ -1,12 +1,12 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class FunctionMetadata {
+public class FunctionStruct {
     Map<String, Integer> varOffsets; // variable name -> stack offsets
     Map<String, Integer> argOffsets; // argument name -> stack offet
     int frameSize; // frame size
 
-    public FunctionMetadata() {
+    public FunctionStruct() {
         this.frameSize = 0;
         this.varOffsets = new HashMap<>();
         this.argOffsets = new HashMap<>();
