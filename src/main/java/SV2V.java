@@ -21,7 +21,7 @@ public class SV2V {
         ov.visit(program);
 
         // Translate Sparrow-V to RISC-V
-        VTranslator tr = new VTranslator(ov.funcVarOffsets, ov.funcFrameSizes, ov.funcArgOffsets);
+        VTranslator tr = new VTranslator(ov.fmd);
         tr.visit(program);
         System.out.println(tr.riscProgram.toString());
     }

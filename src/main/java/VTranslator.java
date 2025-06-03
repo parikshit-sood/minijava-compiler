@@ -27,17 +27,14 @@ import sparrowv.visitor.DepthFirst;
 public class VTranslator extends DepthFirst {
 
     public StringBuilder riscProgram;              // RISC-V program
-    private String currentFunction;
     private boolean isMain;
-    private final Map<String, Map<String, Integer>> funcArgOffsets;
-    private final Map<String, Map<String, Integer>> funcVarOffsets;
-    private final Map<String, Integer> funcFrameSizes;
+    private final Map<String, FunctionMetadata> fmd;
+    private String currentFunction;
+    private FunctionMetadata currFuncMetadata;
 
-    public VTranslator(Map<String, Map<String, Integer>> varOffsets, Map<String, Integer> frameSizes, Map<String, Map<String, Integer>> argOffsets) {
+    public VTranslator(Map<String, FunctionMetadata> fmd) {
         this.riscProgram = new StringBuilder();
-        this.funcVarOffsets = new HashMap<>(varOffsets);
-        this.funcFrameSizes = new HashMap<>(frameSizes);
-        this.funcArgOffsets = new HashMap<>(argOffsets);
+        this.fmd = new HashMap<>(fmd);
     }
 
     /* Sparrow-V AST components */
@@ -133,6 +130,7 @@ public class VTranslator extends DepthFirst {
     public void visit(FunctionDecl n) {
         // TODO: Adjust sp and store fp
         currentFunction = n.functionName.toString();
+        currFuncMetadata = fmd.get(currentFunction);
 
         if (isMain) {
             /* Sparrow-V Main function */
@@ -150,13 +148,13 @@ public class VTranslator extends DepthFirst {
 
         /* Create new activation record */
         /* TODO: Fix this. Check first pass and stack offsets. Frame size looks too large for FacComputeFac (38 instead of 32)*/
-        int frameSize = funcFrameSizes.get(currentFunction);
+        int frameSize = currFuncMetadata.getFrameSize();
         String storeFrameSize = "  li t6, " + frameSize + "\n";
 
         riscProgram.append("  sw fp, -8(sp)\n");
         riscProgram.append("  mv fp, sp\n");
         riscProgram.append(storeFrameSize);
-        riscProgram.append("  sub sp, sp, t6\n");
+        riscProgram.append("  sub sp, sp, t6\n");           // Question: CAN I DEFAULT TO T6 REGISTER?? DON'T SEE WHY NOT
         riscProgram.append("  sw ra, -4(fp)\n");
 
         /* TODO: Fix this. Double check if needed in the output since example does not have it. */
@@ -343,7 +341,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Get offset for this identifier */
-        int offset = funcVarOffsets.get(currentFunction).containsKey(lhs) ? funcVarOffsets.get(currentFunction).get(lhs) : funcArgOffsets.get(currentFunction).get(lhs);
+        int offset = currFuncMetadata.hasVar(lhs) ? currFuncMetadata.getVarOffsets().get(lhs) : currFuncMetadata.getArgOffsets().get(lhs);
 
         /* Build RISC-V instruction */
         String instr = "  sw " + rhs + ", " + offset + "(fp)\n";
@@ -359,7 +357,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Get offset for this identifier */
-        int offset = funcVarOffsets.get(currentFunction).containsKey(rhs) ? funcVarOffsets.get(currentFunction).get(rhs) : funcArgOffsets.get(currentFunction).get(rhs);
+        int offset = currFuncMetadata.hasVar(rhs) ? currFuncMetadata.getVarOffsets().get(rhs) : currFuncMetadata.getArgOffsets().get(rhs);
 
         /* Build RISC-V instruction */
         String instr = "  lw " + lhs + ", " + offset + "(fp)\n";

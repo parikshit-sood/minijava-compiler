@@ -9,20 +9,17 @@ import sparrowv.Move_Reg_Id;
 import sparrowv.visitor.DepthFirst;
 
 public class OffsetVisitor extends DepthFirst{
-    Map<String, Map<String, Integer>> funcVarOffsets;       // function name -> identifier -> stack offset
-    Map<String, Map<String, Integer>> funcArgOffsets;       // function name -> identifier -> stack offset
-    Map<String, Integer> funcFrameSizes;
+    Map<String, FunctionMetadata> fmd;
     String currentFunction;
     int varOffset;
 
     public OffsetVisitor() {
-        funcVarOffsets = new HashMap<>();
-        funcArgOffsets = new HashMap<>();
-        funcFrameSizes = new HashMap<>();
+        fmd = new HashMap<>();
     }
 
-    private boolean isUnique(String var) {
-        return !(funcArgOffsets.get(currentFunction).containsKey(var)) && !(funcVarOffsets.get(currentFunction).containsKey(var));
+    private boolean isUnique(String id) {
+        FunctionMetadata currFunc = fmd.get(currentFunction);
+        return !(currFunc.hasArg(id)) && !(currFunc.hasVar(id));
     }
 
     /*   Program parent;
@@ -31,25 +28,27 @@ public class OffsetVisitor extends DepthFirst{
     *   Block block; */
     @Override
     public void visit(FunctionDecl n) {
+        // Initialize function metadata
         // Process function name
         currentFunction = n.functionName.toString();
-        funcArgOffsets.put(currentFunction, new HashMap<>());
+        fmd.put(currentFunction, new FunctionMetadata());
+
+        Map<String, Integer> funcArgOffsets = fmd.get(currentFunction).getArgOffsets();
 
         // Function arguments
         int offset = 0;
         for (Identifier fp: n.formalParameters) {
-            funcArgOffsets.get(currentFunction).put(fp.toString(), offset);
+            funcArgOffsets.put(fp.toString(), offset);
             offset += 4;
         }
 
         // Visit instructions, searching for local parameters
-        funcVarOffsets.put(currentFunction, new HashMap<>());
         varOffset = 0;
         n.block.accept(this);
 
         // Store stack frame size for this function
         // Add 2 slots for return address and old fp
-        funcFrameSizes.put(currentFunction, (-1 * varOffset + 8));
+        fmd.get(currentFunction).setFrameSize(-1 * varOffset + 8);
     }
 
     /*   Identifier lhs;
@@ -59,8 +58,9 @@ public class OffsetVisitor extends DepthFirst{
         String varName = n.lhs.toString();
         
         // If this is first instance of a variable, give it a stack offset
+        Map<String, Integer> funcVarOffsets = fmd.get(currentFunction).getVarOffsets();
         if (isUnique(varName)) {
-            funcVarOffsets.get(currentFunction).put(varName, varOffset);
+            funcVarOffsets.put(varName, varOffset);
             varOffset -= 4;
         }
     }
@@ -72,8 +72,9 @@ public class OffsetVisitor extends DepthFirst{
         String varName = n.rhs.toString();
 
         // If this is first instance of a variable, give it a stack offset
+        Map<String, Integer> funcVarOffsets = fmd.get(currentFunction).getVarOffsets();
         if (isUnique(varName)) {
-            funcVarOffsets.get(currentFunction).put(varName, varOffset);
+            funcVarOffsets.put(varName, varOffset);
             varOffset -= 4;
         }
     }
