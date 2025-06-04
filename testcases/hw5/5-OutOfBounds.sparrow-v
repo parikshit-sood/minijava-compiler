@@ -1,0 +1,110 @@
+func main()
+t3 = 4
+t4 = alloc(t3)
+if0 t4 goto nullErr_0
+t5 = 0
+t3 = 4
+s1 = alloc(t3)
+if0 s1 goto nullErr_0
+s2 = @A_run
+[s1 + 0] = s2
+[t4 + 0] = s1
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 t4 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+s3 = [t4 + 0]
+s4 = [s3 + 0]
+a2 = t4
+s5 = call s4()
+print(s5)
+s6 = 0
+v8 = s6
+      return v8
+
+func A_run()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 20
+t4 = 0
+t5 = 1
+s1 = t4 - t5
+s2 = s1 < t3
+if0 s2 goto badLength_4
+s3 = 4
+s4 = t3 * s3
+s4 = s4 + s3
+s5 = alloc(s4)
+if0 s5 goto nullErr_5
+[s5 + 0] = t3
+goto success_6
+badLength_4:
+error("bad array length")
+nullErr_5:
+error("null pointer")
+success_6:
+s6 = s5
+s7 = 10
+s8 = [s6 + 0]
+s9 = 5
+s10 = 4
+s11 = s10 - s9
+t4 = s11 < s7
+t5 = s7 < s8
+s1 = t4 * t5
+if0 s1 goto boundsErr_7
+s2 = s7 * s10
+s2 = s2 + s10
+s3 = s6 + s2
+s4 = [s3 + 0]
+goto success_8
+boundsErr_7:
+error("array index out of bounds")
+success_8:
+print(s4)
+t3 = 40
+s5 = [s6 + 0]
+s9 = 5
+s11 = 4
+s8 = s11 - s9
+t5 = s8 < t3
+t4 = t3 < s5
+s1 = t5 * t4
+if0 s1 goto boundsErr_9
+s7 = t3 * s11
+s7 = s7 + s11
+s10 = s6 + s7
+s2 = [s10 + 0]
+goto success_10
+boundsErr_9:
+error("array index out of bounds")
+success_10:
+v40 = s2
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v40
+
+

@@ -1,35 +1,52 @@
-func Main()
-    v0 = 4
-    w0 = alloc(v0)
-    vmt_Fac = alloc(v0)
-    v0 = @FacComputeFac
-    [vmt_Fac + 0] = v0
-    v0 = vmt_Fac
-    [w0 + 0] = v0
-    if0 w0 goto null1
-    w1 = [w0 + 0]
-    w1 = [w1 + 0]
-    v0 = 6
-    w2 = call w1(w0 v0)
-    print(w2)
-    goto main_end
-  null1:
-      error("null pointer")
-  main_end:
-    return v0
+func main()
+v0 = 4
+v1 = alloc(v0)
+if0 v1 goto nullErr_0
+v2 = 0
+v0 = 4
+v3 = alloc(v0)
+if0 v3 goto nullErr_0
+v4 = @Fac_ComputeFac
+[v3 + 0] = v4
+[v1 + 0] = v3
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 v1 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+v5 = 10
+v6 = [v1 + 0]
+v7 = [v6 + 0]
+v8 = call v7(v1 v5)
+print(v8)
+v9 = 0
+      return v9
 
-func FacComputeFac(this num)
-    v0 = 1
-    w0 = num < v0
-    if0 w0 goto if1_else
-      num_aux = 1
-      goto if1_end
-  if1_else:
-      w1 = [this + 0]
-      w1 = [w1 + 0]
-      v0 = 1
-      w2 = num - v0
-      w3 = call w1(this w2)
-      num_aux = num * w3
-  if1_end:
-    return num_aux
+func Fac_ComputeFac(v10 v11)
+v13 = 1
+v14 = v11 < v13
+if0 v14 goto else_4
+v15 = 1
+v12 = v15
+goto endif_5
+else_4:
+if0 v10 goto nullErr_6
+goto success_7
+nullErr_6:
+error("null pointer")
+success_7:
+v16 = 1
+v17 = v11 - v16
+v18 = [v10 + 0]
+v19 = [v18 + 0]
+v20 = call v19(v10 v17)
+v21 = v11 * v20
+v12 = v21
+endif_5:
+      return v12
+
+
