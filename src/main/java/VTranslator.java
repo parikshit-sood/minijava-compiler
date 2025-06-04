@@ -2,6 +2,8 @@
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.tree.TreeNode;
+
 import IR.token.Identifier;
 import sparrowv.Add;
 import sparrowv.Alloc;
@@ -130,7 +132,6 @@ public class VTranslator extends DepthFirst {
      *   Block block; */
     @Override
     public void visit(FunctionDecl n) {
-        // TODO: Adjust sp and store fp
         currentFunction = n.functionName.toString();
         currFuncMetadata = fmd.get(currentFunction);
 
@@ -149,32 +150,17 @@ public class VTranslator extends DepthFirst {
         }
 
         /* Create new activation record */
-        /* TODO: Fix this. Check first pass and stack offsets. Frame size looks too large for FacComputeFac (38 instead of 32)*/
         int frameSize = currFuncMetadata.getFrameSize();
         String storeFrameSize = "  li t6, " + frameSize + "\n";
 
         riscProgram.append("  sw fp, -8(sp)\n");
         riscProgram.append("  mv fp, sp\n");
         riscProgram.append(storeFrameSize);
-        riscProgram.append("  sub sp, sp, t6\n");           // Question: CAN I DEFAULT TO T6 REGISTER?? DON'T SEE WHY NOT
+        riscProgram.append("  sub sp, sp, t6\n");
         riscProgram.append("  sw ra, -4(fp)\n");
-
-        /* TODO: Fix this. Double check if needed in the output since example does not have it. */
-        /* Load local variables and arguments to new stack activation record */
-        // Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
-
-        // for (Map.Entry<String, Integer> entry : varOffsets.entrySet()) {
-        //     String var = entry.getKey();
-        //     int offset = entry.getValue();
-
-        //     String instr = "  sw " + var + ", " + offset + "(fp)\n";                        // sw v0, -4(fp)
-        //     riscProgram.append(instr);                                                      // sw arg1, 4(fp)
-        // }
 
         /* Process instruction in function block */
         n.block.accept(this);
-
-        /* TODO: Handle returns using a0 register */
 
         /* Store return value */
         String retId = n.block.return_id.toString();
@@ -405,8 +391,11 @@ public class VTranslator extends DepthFirst {
     /*   String msg; */
     @Override
     public void visit(ErrorMessage n) {
+        String label = n.msg.equals("\"array index out of bounds\"") ? "msg_array_oob" : "msg_nullptr";
+
         /* Build RISC-V instructions */
-        riscProgram.append("  la a0, msg_nullptr\n");                                  // la a0, msg_nullptr
+        String instr = "  la a0, " + label + "\n";
+        riscProgram.append(instr);                                                      // la a0, msg_nullptr | la a0, msg_array_oob
         riscProgram.append("  jal error\n");                                            // jal error
     }
 
