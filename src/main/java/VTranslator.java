@@ -2,6 +2,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
+import IR.token.Identifier;
 import sparrowv.Add;
 import sparrowv.Alloc;
 import sparrowv.Call;
@@ -174,6 +175,13 @@ public class VTranslator extends DepthFirst {
 
         /* TODO: Handle returns using a0 register */
 
+        /* Store return value */
+        String retId = n.block.return_id.toString();
+        int offset = currFuncMetadata.hasVar(retId) ? currFuncMetadata.getVarOffsets().get(retId) : currFuncMetadata.getArgOffsets().get(retId);
+
+        String storeRetId = "  lw a0, " + offset + "(fp)\n";
+        riscProgram.append(storeRetId);
+
         /* Deallocate local variables and arguments from activation record */
         String restoreSp = "  addi sp, sp, " + frameSize + "\n";
 
@@ -327,7 +335,7 @@ public class VTranslator extends DepthFirst {
         String rhs = n.rhs.toString();
 
         /* Build RISC-V instruction */
-        String instr = "  mov " + lhs + ", " + rhs + "\n";                                  // mov t0, t1
+        String instr = "  mv " + lhs + ", " + rhs + "\n";                                  // mv t0, t1
 
         riscProgram.append(instr);
     }
@@ -397,7 +405,7 @@ public class VTranslator extends DepthFirst {
     @Override
     public void visit(ErrorMessage n) {
         /* Build RISC-V instructions */
-        riscProgram.append("  la a0, null_pointer\n");                                  // la a0, null_pointer
+        riscProgram.append("  la a0, msg_nullptr\n");                                  // la a0, msg_nullptr
         riscProgram.append("  jal error\n");                                            // jal error
     }
 
@@ -438,7 +446,40 @@ public class VTranslator extends DepthFirst {
      *   Register callee;
      *   List<Identifier> args; */
     public void visit(Call n) {
+        int numArgs = n.args.size();
+
+        /* Build RISC-V instructions */
+        String firstInstr = "  li t6, " + (numArgs * 4) + "\n";
+        String moveSp = "  sub sp, sp, t6\n";
+
+        riscProgram.append(firstInstr);
+        riscProgram.append(moveSp);
         
+        /* Load call arguments */
+        int spOffset = 0;
+        for (Identifier a : n.args) {
+            String argName = a.toString();
+            int offset = currFuncMetadata.hasVar(argName) ? currFuncMetadata.getVarOffsets().get(argName) : currFuncMetadata.getArgOffsets().get(argName);
+
+            String instrLoad = "  lw t6, " + offset + "(fp)\n";
+            String instrStore = "  sw t6, " + spOffset + "(sp)\n";
+
+            riscProgram.append(instrLoad);
+            riscProgram.append(instrStore);
+
+            spOffset += 4;
+        }
+
+        /* Make call */
+        String doCall = "  jalr " + n.callee.toString() + "\n";
+        riscProgram.append(doCall);
+
+        /* Reset stack pointer */
+        String resetSp = "  addi sp, sp, " + (numArgs * 4) + "\n";
+        String storeReturn = "  mv " + n.lhs.toString() + ", a0\n";
+
+        riscProgram.append(resetSp);
+        riscProgram.append(storeReturn);
     }
 
 }
