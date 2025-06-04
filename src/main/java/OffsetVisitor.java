@@ -78,17 +78,4 @@ public class OffsetVisitor extends DepthFirst{
             varOffset -= 4;
         }
     }
-
-    // /*   Register lhs;
-    // *   Register callee;
-    // *   List<Identifier> args; */
-    // @Override
-    // public void visit(Call n) {
-    //     Map<String, Integer> varOffsets = funcVarOffsets.get(currentFunction);
-
-    //     for (Identifier a : n.args) {
-    //         varOffsets.put(a.toString(), varOffset);
-    //         varOffset -= 4;
-    //     }
-    // }
 }
