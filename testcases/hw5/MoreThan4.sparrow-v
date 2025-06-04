@@ -1,0 +1,102 @@
+func main()
+t3 = 4
+t4 = alloc(t3)
+if0 t4 goto nullErr_0
+t5 = 0
+t3 = 8
+s1 = alloc(t3)
+if0 s1 goto nullErr_0
+s2 = @MT4_Start
+[s1 + 0] = s2
+s3 = @MT4_Change
+[s1 + 4] = s3
+[t4 + 0] = s1
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 t4 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+s4 = 1
+s5 = 2
+s6 = 3
+s7 = 4
+s8 = 5
+s9 = 6
+s10 = [t4 + 0]
+s11 = [s10 + 0]
+stack_save_t3 = t3
+a2 = t4
+a3 = s4
+a4 = s5
+a5 = s6
+a6 = s7
+a7 = s8
+v11 = s9
+t5 = call s11(v11)
+t3 = stack_save_t3
+print(t5)
+t3 = 0
+v15 = t3
+      return v15
+
+func MT4_Start(v22)
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = v22
+print(a3)
+print(a4)
+print(a5)
+print(a6)
+print(a7)
+print(t3)
+if0 a2 goto nullErr_4
+goto success_5
+nullErr_4:
+error("null pointer")
+success_5:
+t4 = [a2 + 0]
+t5 = [t4 + 4]
+stack_save_a2 = a2
+stack_save_a3 = a3
+stack_save_a4 = a4
+stack_save_a5 = a5
+stack_save_a6 = a6
+stack_save_a7 = a7
+a2 = stack_save_a2
+a3 = t3
+a4 = stack_save_a7
+a5 = stack_save_a6
+a6 = stack_save_a5
+a7 = stack_save_a4
+t0 = stack_save_a3
+v17 = t0
+s1 = call t5(v17)
+a2 = stack_save_a2
+a3 = stack_save_a3
+a4 = stack_save_a4
+a5 = stack_save_a5
+a6 = stack_save_a6
+a7 = stack_save_a7
+s2 = s1
+v23 = s2
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v23
+
+func MT4_Change(v33)
+t3 = v33
+print(a3)
+print(a4)
+print(a5)
+print(a6)
+print(a7)
+print(t3)
+t4 = 0
+v34 = t4
+      return v34
+
+

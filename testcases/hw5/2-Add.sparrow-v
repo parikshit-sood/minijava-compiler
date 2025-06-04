@@ -1,0 +1,10 @@
+func main()
+t3 = 12
+t4 = 21
+t5 = t3 + t4
+print(t5)
+s1 = 0
+v3 = s1
+      return v3
+
+

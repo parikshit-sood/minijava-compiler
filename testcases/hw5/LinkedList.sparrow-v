@@ -1,0 +1,1582 @@
+func main()
+t3 = 4
+t4 = alloc(t3)
+if0 t4 goto nullErr_0
+t5 = 0
+t3 = 4
+s1 = alloc(t3)
+if0 s1 goto nullErr_0
+s2 = @LL_Start
+[s1 + 0] = s2
+[t4 + 0] = s1
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 t4 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+s3 = [t4 + 0]
+s4 = [s3 + 0]
+a2 = t4
+s5 = call s4()
+print(s5)
+s6 = 0
+v8 = s6
+      return v8
+
+func Element_Init()
+[a2 + 4] = a3
+[a2 + 8] = a4
+[a2 + 12] = a5
+t3 = 1
+v16 = t3
+      return v16
+
+func Element_GetAge()
+t3 = [a2 + 4]
+v18 = t3
+      return v18
+
+func Element_GetSalary()
+t3 = [a2 + 8]
+v20 = t3
+      return v20
+
+func Element_GetMarried()
+t3 = [a2 + 12]
+v22 = t3
+      return v22
+
+func Element_Equal()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s11 = s11
+stack_save_s5 = s5
+stack_save_s10 = s10
+stack_save_s6 = s6
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 1
+t4 = t3
+if0 a3 goto nullErr_4
+goto success_5
+nullErr_4:
+error("null pointer")
+success_5:
+t5 = [a3 + 0]
+s1 = [t5 + 4]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a3
+s2 = call s1()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s3 = s2
+if0 a2 goto nullErr_8
+goto success_9
+nullErr_8:
+error("null pointer")
+success_9:
+s4 = [a2 + 4]
+s5 = [a2 + 0]
+s6 = [s5 + 20]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = s3
+a4 = s4
+s7 = call s6()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s8 = 1
+s9 = s8 - s7
+if0 s9 goto else_6
+s10 = 0
+t4 = s10
+goto endif_7
+else_6:
+if0 a3 goto nullErr_10
+goto success_11
+nullErr_10:
+error("null pointer")
+success_11:
+s11 = [a3 + 0]
+t3 = [s11 + 8]
+stack_save_t4 = t4
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a3
+t5 = call t3()
+t4 = stack_save_t4
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s1 = t5
+if0 a2 goto nullErr_14
+goto success_15
+nullErr_14:
+error("null pointer")
+success_15:
+s2 = [a2 + 8]
+s5 = [a2 + 0]
+s4 = [s5 + 20]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = s1
+a4 = s2
+s6 = call s4()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s3 = 1
+s7 = s3 - s6
+if0 s7 goto else_12
+s8 = 0
+t4 = s8
+goto endif_13
+else_12:
+s9 = [a2 + 12]
+if0 s9 goto else_16
+if0 a3 goto nullErr_20
+goto success_21
+nullErr_20:
+error("null pointer")
+success_21:
+s10 = [a3 + 0]
+s11 = [s10 + 12]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a3
+t3 = call s11()
+t4 = stack_save_t4
+t5 = stack_save_t5
+a2 = stack_save_a2
+a3 = stack_save_a3
+t5 = 1
+s5 = t5 - t3
+if0 s5 goto else_18
+s2 = 0
+t4 = s2
+goto endif_19
+else_18:
+s4 = 0
+s1 = s4
+endif_19:
+goto endif_17
+else_16:
+if0 a3 goto nullErr_24
+goto success_25
+nullErr_24:
+error("null pointer")
+success_25:
+s3 = [a3 + 0]
+s6 = [s3 + 12]
+stack_save_t4 = t4
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a3
+s7 = call s6()
+t4 = stack_save_t4
+a2 = stack_save_a2
+a3 = stack_save_a3
+if0 s7 goto else_22
+s8 = 0
+t4 = s8
+goto endif_23
+else_22:
+s9 = 0
+s1 = s9
+endif_23:
+endif_17:
+endif_13:
+endif_7:
+v25 = t4
+s3 = stack_save_s3
+s4 = stack_save_s4
+s11 = stack_save_s11
+s5 = stack_save_s5
+s10 = stack_save_s10
+s6 = stack_save_s6
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v25
+
+func Element_Compare()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s6 = s6
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 0
+t4 = t3
+t5 = 1
+s1 = a4 + t5
+s2 = s1
+s3 = a3 < a4
+if0 s3 goto else_26
+s4 = 0
+t4 = s4
+goto endif_27
+else_26:
+s5 = a3 < s2
+s6 = 1
+s7 = s6 - s5
+if0 s7 goto else_28
+s8 = 0
+t4 = s8
+goto endif_29
+else_28:
+s9 = 1
+t4 = s9
+endif_29:
+endif_27:
+v66 = t4
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s6 = stack_save_s6
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v66
+
+func List_Init()
+t3 = 1
+[a2 + 12] = t3
+t4 = 1
+v83 = t4
+      return v83
+
+func List_InitNew()
+[a2 + 12] = a5
+[a2 + 4] = a3
+[a2 + 8] = a4
+t3 = 1
+v88 = t3
+      return v88
+
+func List_Insert()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = a2
+t4 = 16
+t5 = alloc(t4)
+if0 t5 goto nullErr_30
+s1 = 0
+[t5 + 4] = s1
+[t5 + 8] = s1
+[t5 + 12] = s1
+t4 = 40
+s2 = alloc(t4)
+if0 s2 goto nullErr_30
+s3 = @List_Search
+[s2 + 20] = s3
+s4 = @List_GetEnd
+[s2 + 24] = s4
+s5 = @List_SetNext
+[s2 + 12] = s5
+s6 = @List_GetElem
+[s2 + 28] = s6
+s7 = @List_Init
+[s2 + 0] = s7
+s8 = @List_Insert
+[s2 + 8] = s8
+s9 = @List_Delete
+[s2 + 16] = s9
+s10 = @List_InitNew
+[s2 + 4] = s10
+s11 = @List_GetNext
+[s2 + 32] = s11
+s1 = @List_Print
+[s2 + 36] = s1
+[t5 + 0] = s2
+goto success_31
+nullErr_30:
+error("null pointer")
+success_31:
+t4 = t5
+if0 t4 goto nullErr_32
+goto success_33
+nullErr_32:
+error("null pointer")
+success_33:
+s3 = 0
+s4 = [t4 + 0]
+s5 = [s4 + 4]
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = t4
+a3 = stack_save_a3
+a4 = t3
+a5 = s3
+s6 = call s5()
+a2 = stack_save_a2
+a3 = stack_save_a3
+s7 = s6
+v93 = t4
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v93
+
+func List_SetNext()
+[a2 + 8] = a3
+t3 = 1
+v114 = t3
+      return v114
+
+func List_Delete()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s11 = s11
+stack_save_s5 = s5
+stack_save_s10 = s10
+stack_save_s6 = s6
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t0 = a2
+v117 = t0
+t4 = 0
+t5 = t4
+s1 = 0
+s2 = 1
+s3 = s1 - s2
+s4 = s3
+s5 = a2
+s6 = a2
+s7 = [a2 + 12]
+s8 = s7
+s9 = [a2 + 4]
+s10 = s9
+while_34:
+t0 = 1
+v132 = t0
+t0 = v132
+t1 = t0 - s8
+v133 = t1
+t0 = v133
+if0 t0 goto else_36
+t0 = 1
+v134 = t0
+t0 = v134
+t1 = t0 - t5
+v135 = t1
+t1 = v135
+t0 = t1
+v136 = t0
+goto end_37
+else_36:
+t0 = 0
+v136 = t0
+end_37:
+t0 = v136
+if0 t0 goto endWhile_35
+if0 a3 goto nullErr_40
+goto success_41
+nullErr_40:
+error("null pointer")
+success_41:
+t1 = [a3 + 0]
+v137 = t1
+t0 = v137
+t1 = [t0 + 16]
+v138 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v138
+a2 = stack_save_a3
+a3 = s10
+t1 = call t2()
+v139 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t0 = v139
+if0 t0 goto else_38
+s11 = 1
+t5 = s11
+t3 = 0
+t1 = s4 < t3
+v142 = t1
+t0 = v142
+if0 t0 goto else_42
+if0 s5 goto nullErr_44
+goto success_45
+nullErr_44:
+error("null pointer")
+success_45:
+s7 = [s5 + 0]
+s9 = [s7 + 32]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = s5
+s2 = call s9()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t0 = s2
+v117 = t0
+goto endif_43
+else_42:
+s3 = 0
+t4 = 555
+s1 = s3 - t4
+print(s1)
+if0 s6 goto nullErr_46
+goto success_47
+nullErr_46:
+error("null pointer")
+success_47:
+if0 s5 goto nullErr_48
+goto success_49
+nullErr_48:
+error("null pointer")
+success_49:
+t1 = [s5 + 0]
+v149 = t1
+t0 = v149
+t1 = [t0 + 32]
+v150 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v150
+a2 = s5
+t1 = call t2()
+v151 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = [s6 + 0]
+v152 = t1
+t0 = v152
+t1 = [t0 + 12]
+v153 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v153
+a2 = s6
+t0 = v151
+a3 = t0
+t1 = call t2()
+v154 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = v154
+t0 = t1
+v119 = t0
+t0 = 0
+v155 = t0
+t0 = 555
+v156 = t0
+t0 = v155
+t1 = v156
+t1 = t0 - t1
+v157 = t1
+t0 = v157
+print(t0)
+endif_43:
+goto endif_39
+else_38:
+t0 = 0
+v158 = t0
+t1 = v158
+t0 = t1
+v125 = t0
+endif_39:
+t0 = 1
+v159 = t0
+t0 = v159
+t1 = t0 - t5
+v160 = t1
+t0 = v160
+if0 t0 goto else_50
+s6 = s5
+if0 s5 goto nullErr_52
+goto success_53
+nullErr_52:
+error("null pointer")
+success_53:
+t1 = [s5 + 0]
+v161 = t1
+t0 = v161
+t1 = [t0 + 32]
+v162 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v162
+a2 = s5
+t1 = call t2()
+v163 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = v163
+s5 = t1
+if0 s5 goto nullErr_54
+goto success_55
+nullErr_54:
+error("null pointer")
+success_55:
+t1 = [s5 + 0]
+v164 = t1
+t0 = v164
+t1 = [t0 + 24]
+v165 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v165
+a2 = s5
+t1 = call t2()
+v166 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = v166
+s8 = t1
+if0 s5 goto nullErr_56
+goto success_57
+nullErr_56:
+error("null pointer")
+success_57:
+t1 = [s5 + 0]
+v167 = t1
+t0 = v167
+t1 = [t0 + 28]
+v168 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v168
+a2 = s5
+t1 = call t2()
+v169 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = v169
+s10 = t1
+t0 = 1
+v170 = t0
+t1 = v170
+s4 = t1
+goto endif_51
+else_50:
+t0 = 0
+v171 = t0
+t1 = v171
+t0 = t1
+v125 = t0
+endif_51:
+goto while_34
+endWhile_35:
+s3 = stack_save_s3
+s4 = stack_save_s4
+s11 = stack_save_s11
+s5 = stack_save_s5
+s10 = stack_save_s10
+s6 = stack_save_s6
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v117
+
+func List_Search()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 0
+t0 = t3
+v174 = t0
+t5 = a2
+s1 = [a2 + 12]
+s2 = s1
+s3 = [a2 + 4]
+s4 = s3
+while_58:
+s10 = 1
+s5 = s10 - s2
+if0 s5 goto endWhile_59
+if0 a3 goto nullErr_62
+goto success_63
+nullErr_62:
+error("null pointer")
+success_63:
+s7 = [a3 + 0]
+t1 = [s7 + 16]
+v185 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v185
+a2 = stack_save_a3
+a3 = s4
+t1 = call t2()
+v186 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t0 = v186
+if0 t0 goto else_60
+t0 = 1
+v187 = t0
+t1 = v187
+t0 = t1
+v174 = t0
+goto endif_61
+else_60:
+t0 = 0
+v188 = t0
+t1 = v188
+s3 = t1
+endif_61:
+if0 t5 goto nullErr_64
+goto success_65
+nullErr_64:
+error("null pointer")
+success_65:
+t4 = [t5 + 0]
+t3 = [t4 + 32]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = t5
+s1 = call t3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t5 = s1
+if0 t5 goto nullErr_66
+goto success_67
+nullErr_66:
+error("null pointer")
+success_67:
+s9 = [t5 + 0]
+s11 = [s9 + 24]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = t5
+s6 = call s11()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s2 = s6
+if0 t5 goto nullErr_68
+goto success_69
+nullErr_68:
+error("null pointer")
+success_69:
+s8 = [t5 + 0]
+t1 = [s8 + 28]
+v196 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+t2 = v196
+a2 = t5
+t1 = call t2()
+v197 = t1
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t1 = v197
+s4 = t1
+goto while_58
+endWhile_59:
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v174
+
+func List_GetEnd()
+t3 = [a2 + 12]
+v199 = t3
+      return v199
+
+func List_GetElem()
+t3 = [a2 + 4]
+v201 = t3
+      return v201
+
+func List_GetNext()
+t3 = [a2 + 8]
+v203 = t3
+      return v203
+
+func List_Print()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = a2
+t4 = [a2 + 12]
+t5 = t4
+s1 = [a2 + 4]
+s2 = s1
+while_70:
+s10 = 1
+s5 = s10 - t5
+if0 s5 goto endWhile_71
+if0 s2 goto nullErr_72
+goto success_73
+nullErr_72:
+error("null pointer")
+success_73:
+s7 = [s2 + 0]
+s3 = [s7 + 4]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s2
+s4 = call s3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+print(s4)
+if0 t3 goto nullErr_74
+goto success_75
+nullErr_74:
+error("null pointer")
+success_75:
+t1 = [t3 + 0]
+v215 = t1
+t0 = v215
+t1 = [t0 + 32]
+v216 = t1
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+t2 = v216
+a2 = t3
+s1 = call t2()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+t3 = s1
+if0 t3 goto nullErr_76
+goto success_77
+nullErr_76:
+error("null pointer")
+success_77:
+t1 = [t3 + 0]
+v218 = t1
+t0 = v218
+t4 = [t0 + 24]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = t3
+s9 = call t4()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+t5 = s9
+if0 t3 goto nullErr_78
+goto success_79
+nullErr_78:
+error("null pointer")
+success_79:
+s11 = [t3 + 0]
+s6 = [s11 + 28]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = t3
+s8 = call s6()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s2 = s8
+goto while_70
+endWhile_71:
+s3 = 1
+v224 = s3
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v224
+
+func LL_Start()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s11 = s11
+stack_save_s5 = s5
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 16
+t4 = alloc(t3)
+if0 t4 goto nullErr_80
+t5 = 0
+[t4 + 4] = t5
+[t4 + 8] = t5
+[t4 + 12] = t5
+t3 = 40
+s1 = alloc(t3)
+if0 s1 goto nullErr_80
+s2 = @List_Search
+[s1 + 20] = s2
+s3 = @List_GetEnd
+[s1 + 24] = s3
+s4 = @List_SetNext
+[s1 + 12] = s4
+s5 = @List_GetElem
+[s1 + 28] = s5
+s6 = @List_Init
+[s1 + 0] = s6
+s7 = @List_Insert
+[s1 + 8] = s7
+s8 = @List_Delete
+[s1 + 16] = s8
+s9 = @List_InitNew
+[s1 + 4] = s9
+s10 = @List_GetNext
+[s1 + 32] = s10
+s11 = @List_Print
+[s1 + 36] = s11
+[t4 + 0] = s1
+goto success_81
+nullErr_80:
+error("null pointer")
+success_81:
+t5 = t4
+if0 t5 goto nullErr_82
+goto success_83
+nullErr_82:
+error("null pointer")
+success_83:
+t3 = [t5 + 0]
+s2 = [t3 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = t5
+s3 = call s2()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s3
+s5 = t5
+if0 s5 goto nullErr_84
+goto success_85
+nullErr_84:
+error("null pointer")
+success_85:
+s6 = [s5 + 0]
+s7 = [s6 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+s8 = call s7()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s8
+if0 s5 goto nullErr_86
+goto success_87
+nullErr_86:
+error("null pointer")
+success_87:
+s9 = [s5 + 0]
+s10 = [s9 + 36]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+s11 = call s10()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s11
+s1 = 16
+t4 = alloc(s1)
+if0 t4 goto nullErr_88
+t3 = 0
+[t4 + 4] = t3
+[t4 + 8] = t3
+[t4 + 12] = t3
+s1 = 24
+s2 = alloc(s1)
+if0 s2 goto nullErr_88
+s3 = @Element_Equal
+[s2 + 16] = s3
+t5 = @Element_GetMarried
+[s2 + 12] = t5
+s6 = @Element_Compare
+[s2 + 20] = s6
+s7 = @Element_GetAge
+[s2 + 4] = s7
+s8 = @Element_GetSalary
+[s2 + 8] = s8
+s9 = @Element_Init
+[s2 + 0] = s9
+[t4 + 0] = s2
+goto success_89
+nullErr_88:
+error("null pointer")
+success_89:
+s10 = t4
+if0 s10 goto nullErr_90
+goto success_91
+nullErr_90:
+error("null pointer")
+success_91:
+s11 = 25
+t3 = 37000
+s1 = 0
+s3 = [s10 + 0]
+t5 = [s3 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s10
+a3 = s11
+a4 = t3
+a5 = s1
+s6 = call t5()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s6
+if0 s5 goto nullErr_92
+goto success_93
+nullErr_92:
+error("null pointer")
+success_93:
+s7 = [s5 + 0]
+s8 = [s7 + 8]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s10
+s9 = call s8()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s5 = s9
+if0 s5 goto nullErr_94
+goto success_95
+nullErr_94:
+error("null pointer")
+success_95:
+s2 = [s5 + 0]
+t4 = [s2 + 36]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+s3 = call t4()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s3
+t5 = 10000000
+print(t5)
+t3 = 16
+s1 = alloc(t3)
+if0 s1 goto nullErr_96
+s11 = 0
+[s1 + 4] = s11
+[s1 + 8] = s11
+[s1 + 12] = s11
+t3 = 24
+s6 = alloc(t3)
+if0 s6 goto nullErr_96
+s7 = @Element_Equal
+[s6 + 16] = s7
+s8 = @Element_GetMarried
+[s6 + 12] = s8
+s9 = @Element_Compare
+[s6 + 20] = s9
+s2 = @Element_GetAge
+[s6 + 4] = s2
+t4 = @Element_GetSalary
+[s6 + 8] = t4
+s3 = @Element_Init
+[s6 + 0] = s3
+[s1 + 0] = s6
+goto success_97
+nullErr_96:
+error("null pointer")
+success_97:
+s10 = s1
+if0 s10 goto nullErr_98
+goto success_99
+nullErr_98:
+error("null pointer")
+success_99:
+t5 = 39
+s11 = 42000
+t3 = 1
+s7 = [s10 + 0]
+s8 = [s7 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s10
+a3 = t5
+a4 = s11
+a5 = t3
+s9 = call s8()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s9
+s2 = s10
+if0 s5 goto nullErr_100
+goto success_101
+nullErr_100:
+error("null pointer")
+success_101:
+t4 = [s5 + 0]
+s3 = [t4 + 8]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s10
+s6 = call s3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s5 = s6
+if0 s5 goto nullErr_102
+goto success_103
+nullErr_102:
+error("null pointer")
+success_103:
+s1 = [s5 + 0]
+s7 = [s1 + 36]
+stack_save_t4 = t4
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+t5 = call s7()
+t4 = stack_save_t4
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = t5
+s11 = 10000000
+print(s11)
+s8 = 16
+t3 = alloc(s8)
+if0 t3 goto nullErr_104
+s9 = 0
+[t3 + 4] = s9
+[t3 + 8] = s9
+[t3 + 12] = s9
+s8 = 24
+t4 = alloc(s8)
+if0 t4 goto nullErr_104
+s3 = @Element_Equal
+[t4 + 16] = s3
+s6 = @Element_GetMarried
+[t4 + 12] = s6
+s1 = @Element_Compare
+[t4 + 20] = s1
+s7 = @Element_GetAge
+[t4 + 4] = s7
+t5 = @Element_GetSalary
+[t4 + 8] = t5
+s11 = @Element_Init
+[t4 + 0] = s11
+[t3 + 0] = t4
+goto success_105
+nullErr_104:
+error("null pointer")
+success_105:
+s10 = t3
+if0 s10 goto nullErr_106
+goto success_107
+nullErr_106:
+error("null pointer")
+success_107:
+s9 = 22
+s8 = 34000
+s3 = 0
+s6 = [s10 + 0]
+s1 = [s6 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s10
+a3 = s9
+a4 = s8
+a5 = s3
+s7 = call s1()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s7
+if0 s5 goto nullErr_108
+goto success_109
+nullErr_108:
+error("null pointer")
+success_109:
+t5 = [s5 + 0]
+s11 = [t5 + 8]
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s10
+t4 = call s11()
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s5 = t4
+if0 s5 goto nullErr_110
+goto success_111
+nullErr_110:
+error("null pointer")
+success_111:
+t3 = [s5 + 0]
+s6 = [t3 + 36]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+s1 = call s6()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s1
+s8 = 16
+s3 = alloc(s8)
+if0 s3 goto nullErr_112
+s9 = 0
+[s3 + 4] = s9
+[s3 + 8] = s9
+[s3 + 12] = s9
+s8 = 24
+s7 = alloc(s8)
+if0 s7 goto nullErr_112
+t5 = @Element_Equal
+[s7 + 16] = t5
+s11 = @Element_GetMarried
+[s7 + 12] = s11
+t4 = @Element_Compare
+[s7 + 20] = t4
+t3 = @Element_GetAge
+[s7 + 4] = t3
+s6 = @Element_GetSalary
+[s7 + 8] = s6
+s1 = @Element_Init
+[s7 + 0] = s1
+[s3 + 0] = s7
+goto success_113
+nullErr_112:
+error("null pointer")
+success_113:
+s9 = s3
+if0 s9 goto nullErr_114
+goto success_115
+nullErr_114:
+error("null pointer")
+success_115:
+s8 = 27
+t5 = 34000
+s11 = 0
+t4 = [s9 + 0]
+t3 = [t4 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s9
+a3 = s8
+a4 = t5
+a5 = s11
+s6 = call t3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s6
+if0 s5 goto nullErr_116
+goto success_117
+nullErr_116:
+error("null pointer")
+success_117:
+s1 = [s5 + 0]
+s7 = [s1 + 20]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s2
+s3 = call s7()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+print(s3)
+if0 s5 goto nullErr_118
+goto success_119
+nullErr_118:
+error("null pointer")
+success_119:
+t4 = [s5 + 0]
+t3 = [t4 + 20]
+stack_save_t4 = t4
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s9
+t5 = call t3()
+t4 = stack_save_t4
+t3 = stack_save_t3
+a2 = stack_save_a2
+print(t5)
+s11 = 10000000
+print(s11)
+s8 = 16
+s6 = alloc(s8)
+if0 s6 goto nullErr_120
+s1 = 0
+[s6 + 4] = s1
+[s6 + 8] = s1
+[s6 + 12] = s1
+s8 = 24
+s7 = alloc(s8)
+if0 s7 goto nullErr_120
+s3 = @Element_Equal
+[s7 + 16] = s3
+t4 = @Element_GetMarried
+[s7 + 12] = t4
+t3 = @Element_Compare
+[s7 + 20] = t3
+s9 = @Element_GetAge
+[s7 + 4] = s9
+t5 = @Element_GetSalary
+[s7 + 8] = t5
+s11 = @Element_Init
+[s7 + 0] = s11
+[s6 + 0] = s7
+goto success_121
+nullErr_120:
+error("null pointer")
+success_121:
+s10 = s6
+if0 s10 goto nullErr_122
+goto success_123
+nullErr_122:
+error("null pointer")
+success_123:
+s1 = 28
+s8 = 35000
+s3 = 0
+t4 = [s10 + 0]
+t3 = [t4 + 0]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s10
+a3 = s1
+a4 = s8
+a5 = s3
+s9 = call t3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s9
+if0 s5 goto nullErr_124
+goto success_125
+nullErr_124:
+error("null pointer")
+success_125:
+t5 = [s5 + 0]
+s11 = [t5 + 8]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s10
+s7 = call s11()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s5 = s7
+if0 s5 goto nullErr_126
+goto success_127
+nullErr_126:
+error("null pointer")
+success_127:
+s6 = [s5 + 0]
+t4 = [s6 + 36]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_a2 = a2
+a2 = s5
+t3 = call t4()
+t4 = stack_save_t4
+t5 = stack_save_t5
+a2 = stack_save_a2
+s4 = t3
+s3 = 2220000
+print(s3)
+if0 s5 goto nullErr_128
+goto success_129
+nullErr_128:
+error("null pointer")
+success_129:
+s1 = [s5 + 0]
+s8 = [s1 + 16]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+a3 = s2
+s9 = call s8()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s5 = s9
+if0 s5 goto nullErr_130
+goto success_131
+nullErr_130:
+error("null pointer")
+success_131:
+t5 = [s5 + 0]
+s11 = [t5 + 36]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+a2 = s5
+s7 = call s11()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+s4 = s7
+s6 = 33300000
+print(s6)
+if0 s5 goto nullErr_132
+goto success_133
+nullErr_132:
+error("null pointer")
+success_133:
+t4 = [s5 + 0]
+t3 = [t4 + 16]
+stack_save_t5 = t5
+stack_save_a2 = a2
+a2 = s5
+a3 = s10
+s3 = call t3()
+t5 = stack_save_t5
+a2 = stack_save_a2
+s5 = s3
+if0 s5 goto nullErr_134
+goto success_135
+nullErr_134:
+error("null pointer")
+success_135:
+s1 = [s5 + 0]
+s8 = [s1 + 36]
+stack_save_t5 = t5
+stack_save_a2 = a2
+a2 = s5
+s2 = call s8()
+t5 = stack_save_t5
+a2 = stack_save_a2
+s4 = s2
+s9 = 44440000
+print(s9)
+t5 = 0
+v383 = t5
+s3 = stack_save_s3
+s4 = stack_save_s4
+s11 = stack_save_s11
+s5 = stack_save_s5
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v383
+
+

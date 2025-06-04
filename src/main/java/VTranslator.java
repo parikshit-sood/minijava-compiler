@@ -32,6 +32,7 @@ public class VTranslator extends DepthFirst {
     private final Map<String, FunctionStruct> fmd;
     private String currentFunction;
     private FunctionStruct currFuncMetadata;
+    private int count;
 
     public VTranslator(Map<String, FunctionStruct> fmd) {
         this.riscProgram = new StringBuilder();
@@ -432,10 +433,12 @@ public class VTranslator extends DepthFirst {
 
         String mangled = currentFunction + "_" + label;
 
+        String skip = mangled + "_no_jump_" + count++;
+
         /* Build RISC-V instructions */
-        String firstInstr = "  bnez " + cond + ", " + mangled + "_no_jump" + "\n";
+        String firstInstr = "  bnez " + cond + ", " + skip + "\n";
         String secondInstr = "  jal " + mangled + "\n";
-        String thirdInstr = mangled + "_no_jump:\n";
+        String thirdInstr = skip + ":\n";
 
         riscProgram.append(firstInstr);
         riscProgram.append(secondInstr);

@@ -1,0 +1,477 @@
+func main()
+t3 = 12
+t4 = alloc(t3)
+if0 t4 goto nullErr_0
+t5 = 0
+[t4 + 4] = t5
+[t4 + 8] = t5
+t3 = 16
+s1 = alloc(t3)
+if0 s1 goto nullErr_0
+s2 = @LS_Search
+[s1 + 8] = s2
+s3 = @LS_Init
+[s1 + 12] = s3
+s4 = @LS_Print
+[s1 + 4] = s4
+s5 = @LS_Start
+[s1 + 0] = s5
+[t4 + 0] = s1
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 t4 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+s6 = 10
+s7 = [t4 + 0]
+s8 = [s7 + 0]
+a2 = t4
+a3 = s6
+s9 = call s8()
+print(s9)
+s10 = 0
+v12 = s10
+      return v12
+
+func LS_Start()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s11 = s11
+stack_save_s5 = s5
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+if0 a2 goto nullErr_4
+goto success_5
+nullErr_4:
+error("null pointer")
+success_5:
+t3 = [a2 + 0]
+t4 = [t3 + 12]
+stack_save_t4 = t4
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = stack_save_a3
+t5 = call t4()
+t4 = stack_save_t4
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s1 = t5
+if0 a2 goto nullErr_6
+goto success_7
+nullErr_6:
+error("null pointer")
+success_7:
+s2 = [a2 + 0]
+s3 = [s2 + 4]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+s4 = call s3()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+s5 = s4
+s6 = 9999
+print(s6)
+if0 a2 goto nullErr_8
+goto success_9
+nullErr_8:
+error("null pointer")
+success_9:
+s7 = 8
+s8 = [a2 + 0]
+s9 = [s8 + 8]
+stack_save_t4 = t4
+stack_save_t5 = t5
+stack_save_t3 = t3
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = s7
+s10 = call s9()
+t4 = stack_save_t4
+t5 = stack_save_t5
+t3 = stack_save_t3
+a2 = stack_save_a2
+a3 = stack_save_a3
+print(s10)
+if0 a2 goto nullErr_10
+goto success_11
+nullErr_10:
+error("null pointer")
+success_11:
+s11 = 12
+t3 = [a2 + 0]
+t4 = [t3 + 8]
+stack_save_t5 = t5
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = s11
+s1 = call t4()
+t5 = stack_save_t5
+a2 = stack_save_a2
+a3 = stack_save_a3
+print(s1)
+if0 a2 goto nullErr_12
+goto success_13
+nullErr_12:
+error("null pointer")
+success_13:
+t5 = 17
+s2 = [a2 + 0]
+s3 = [s2 + 8]
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = t5
+s5 = call s3()
+a2 = stack_save_a2
+a3 = stack_save_a3
+print(s5)
+if0 a2 goto nullErr_14
+goto success_15
+nullErr_14:
+error("null pointer")
+success_15:
+s4 = 50
+s6 = [a2 + 0]
+s8 = [s6 + 8]
+stack_save_a2 = a2
+stack_save_a3 = a3
+a2 = stack_save_a2
+a3 = s4
+s7 = call s8()
+a2 = stack_save_a2
+a3 = stack_save_a3
+print(s7)
+s9 = 55
+v42 = s9
+s3 = stack_save_s3
+s4 = stack_save_s4
+s11 = stack_save_s11
+s5 = stack_save_s5
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v42
+
+func LS_Print()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 1
+t4 = t3
+while_16:
+s10 = [a2 + 8]
+s8 = t4 < s10
+if0 s8 goto endWhile_17
+t1 = [a2 + 4]
+v48 = t1
+t0 = v48
+t3 = [t0 + 0]
+t5 = 5
+s3 = 4
+s2 = s3 - t5
+s5 = s2 < t4
+s4 = t4 < t3
+s7 = s5 * s4
+if0 s7 goto boundsErr_18
+s6 = t4 * s3
+s6 = s6 + s3
+t0 = v48
+s11 = t0 + s6
+s9 = [s11 + 0]
+goto success_19
+boundsErr_18:
+error("array index out of bounds")
+success_19:
+print(s9)
+t0 = 1
+v59 = t0
+t1 = v59
+s1 = t4 + t1
+t4 = s1
+goto while_16
+endWhile_17:
+t5 = 0
+v61 = t5
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v61
+
+func LS_Search()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s5 = s5
+stack_save_s11 = s11
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+t3 = 1
+t4 = t3
+t5 = 0
+s1 = t5
+s2 = 0
+t0 = s2
+v66 = t0
+while_20:
+s11 = [a2 + 8]
+s9 = t4 < s11
+if0 s9 goto endWhile_21
+s3 = [a2 + 4]
+t5 = [s3 + 0]
+t0 = 5
+v77 = t0
+t0 = 4
+v78 = t0
+t0 = v78
+t1 = v77
+t1 = t0 - t1
+v79 = t1
+t0 = v79
+t1 = t0 < t4
+v80 = t1
+t1 = t4 < t5
+v81 = t1
+t0 = v80
+t1 = v81
+t1 = t0 * t1
+v82 = t1
+t0 = v82
+if0 t0 goto boundsErr_22
+t1 = v78
+t1 = t4 * t1
+v83 = t1
+t0 = v83
+t1 = v78
+t1 = t0 + t1
+v83 = t1
+t1 = v83
+t1 = s3 + t1
+v84 = t1
+t0 = v84
+t1 = [t0 + 0]
+v85 = t1
+goto success_23
+boundsErr_22:
+error("array index out of bounds")
+success_23:
+t1 = v85
+t0 = t1
+v67 = t0
+t0 = 1
+v86 = t0
+t1 = v86
+t1 = a3 + t1
+v87 = t1
+t1 = v87
+t0 = t1
+v68 = t0
+t0 = v67
+t1 = t0 < a3
+v88 = t1
+t0 = v88
+if0 t0 goto else_24
+t0 = 0
+v89 = t0
+t1 = v89
+t0 = t1
+v69 = t0
+goto endif_25
+else_24:
+t0 = v67
+t1 = v68
+s4 = t0 < t1
+s6 = 1
+s5 = s6 - s4
+if0 s5 goto else_26
+s8 = 0
+t0 = s8
+v69 = t0
+goto endif_27
+else_26:
+s7 = 1
+s1 = s7
+t3 = 1
+t0 = t3
+v66 = t0
+s10 = [a2 + 8]
+t4 = s10
+endif_27:
+endif_25:
+t0 = 1
+v97 = t0
+t1 = v97
+s2 = t4 + t1
+t4 = s2
+goto while_20
+endWhile_21:
+s3 = stack_save_s3
+s4 = stack_save_s4
+s5 = stack_save_s5
+s11 = stack_save_s11
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v66
+
+func LS_Init()
+stack_save_s3 = s3
+stack_save_s4 = s4
+stack_save_s11 = s11
+stack_save_s5 = s5
+stack_save_s6 = s6
+stack_save_s10 = s10
+stack_save_s7 = s7
+stack_save_s8 = s8
+stack_save_s9 = s9
+stack_save_s1 = s1
+stack_save_s2 = s2
+[a2 + 8] = a3
+t3 = 0
+t4 = 1
+t5 = t3 - t4
+s1 = t5 < a3
+if0 s1 goto badLength_28
+s2 = 4
+s3 = a3 * s2
+s3 = s3 + s2
+s4 = alloc(s3)
+if0 s4 goto nullErr_29
+[s4 + 0] = a3
+goto success_30
+badLength_28:
+error("bad array length")
+nullErr_29:
+error("null pointer")
+success_30:
+[a2 + 4] = s4
+s5 = 1
+s6 = s5
+s7 = [a2 + 8]
+s8 = 1
+s9 = s7 + s8
+s10 = s9
+while_31:
+s9 = [a2 + 8]
+t1 = s6 < s9
+v117 = t1
+t0 = v117
+if0 t0 goto endWhile_32
+s8 = 2
+s7 = s8 * s6
+s11 = s7
+s5 = 3
+s3 = s10 - s5
+t4 = s3
+s4 = [a2 + 4]
+s1 = [s4 + 0]
+s2 = 5
+t3 = 4
+t5 = t3 - s2
+t1 = t5 < s6
+v127 = t1
+t1 = s6 < s1
+v128 = t1
+t0 = v127
+t1 = v128
+t1 = t0 * t1
+v129 = t1
+t0 = v129
+if0 t0 goto boundsErr_33
+t1 = s6 * t3
+v130 = t1
+t0 = v130
+t1 = t0 + t3
+v130 = t1
+t1 = v130
+t1 = s4 + t1
+v131 = t1
+t1 = s11 + t4
+v132 = t1
+t0 = v132
+t1 = v131
+[t1 + 0] = t0
+goto success_34
+boundsErr_33:
+error("array index out of bounds")
+success_34:
+t0 = 1
+v133 = t0
+t1 = v133
+t1 = s6 + t1
+v134 = t1
+t1 = v134
+s6 = t1
+t0 = 1
+v135 = t0
+t1 = v135
+t1 = s10 - t1
+v136 = t1
+t1 = v136
+s10 = t1
+goto while_31
+endWhile_32:
+s11 = 0
+v137 = s11
+s3 = stack_save_s3
+s4 = stack_save_s4
+s11 = stack_save_s11
+s5 = stack_save_s5
+s6 = stack_save_s6
+s10 = stack_save_s10
+s7 = stack_save_s7
+s8 = stack_save_s8
+s9 = stack_save_s9
+s1 = stack_save_s1
+s2 = stack_save_s2
+      return v137
+
+
