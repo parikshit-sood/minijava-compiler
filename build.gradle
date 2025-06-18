@@ -3,15 +3,15 @@ apply plugin: 'java'
 def mainClass () {
     switch (homework) {
         case "hw1":
-            return "Parse"
+            return "Parse.Parse"
         case "hw2":
-            return "Typecheck"
+            return "Typecheck.Typecheck"
         case "hw3":
-            return "J2S"
+            return "J2S.J2S"
         case "hw4":
-            return "S2SV"
+            return "S2SV.S2SV"
         case "hw5":
-            return "SV2V"
+            return "SV2V.SV2V"
         default:
             throw new Exception("Didn't reconize homework='" + homework +"', remember to set it in gradle.properties");
     }
@@ -19,20 +19,14 @@ def mainClass () {
 
 repositories {
     jcenter()
+    flatDir {
+        dirs 'lib'
+    }
 }
 
 dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
-}
-
-repositories {
-   flatDir {
-       dirs 'lib'
-   }
-}
-
-dependencies {
     implementation name: 'cs132'
 }
 

@@ -1,0 +1,134 @@
+.equiv @sbrk, 9
+.equiv @print_string, 4
+.equiv @print_char, 11
+.equiv @print_int, 1
+.equiv @exit, 10
+.equiv @exit2, 17
+
+.text
+
+
+.globl main
+  jal Main
+  li a0, @exit
+  ecall
+
+
+.globl Main
+Main:
+  sw fp, -8(sp)
+  mv fp, sp
+  li t6, 12
+  sub sp, sp, t6
+  sw ra, -4(fp)
+  li t3, 4
+  mv a0, t3
+  jal alloc
+  mv t4, a0
+  bnez t4, main_nullErr_0_no_jump_0
+  jal main_nullErr_0
+main_nullErr_0_no_jump_0:
+  li t5, 0
+  li t3, 4
+  mv a0, t3
+  jal alloc
+  mv s1, a0
+  bnez s1, main_nullErr_0_no_jump_1
+  jal main_nullErr_0
+main_nullErr_0_no_jump_1:
+  la s2, A_run
+  sw s2, 0(s1)
+  sw s1, 0(t4)
+  jal main_success_1
+main_nullErr_0:
+  la a0, msg_nullptr
+  jal error
+main_success_1:
+  bnez t4, main_nullErr_2_no_jump_2
+  jal main_nullErr_2
+main_nullErr_2_no_jump_2:
+  jal main_success_3
+main_nullErr_2:
+  la a0, msg_nullptr
+  jal error
+main_success_3:
+  lw s3, 0(t4)
+  lw s4, 0(s3)
+  mv a2, t4
+  li t6, 0
+  sub sp, sp, t6
+  jalr s4
+  addi sp, sp, 0
+  mv s5, a0
+  mv a0, s5
+  jal print
+  li s6, 0
+  sw s6, -12(fp)
+  lw a0, -12(fp)
+  lw ra, -4(fp)
+  lw fp, -8(fp)
+  addi sp, sp, 12
+  jr ra
+
+.globl A_run
+A_run:
+  sw fp, -8(sp)
+  mv fp, sp
+  li t6, 12
+  sub sp, sp, t6
+  sw ra, -4(fp)
+  li t3, 1
+  mv t4, t3
+  sw t4, -12(fp)
+  lw a0, -12(fp)
+  lw ra, -4(fp)
+  lw fp, -8(fp)
+  addi sp, sp, 12
+  jr ra
+
+.globl print
+print:
+  mv a1, a0
+  li a0, @print_int
+  ecall
+  li a1, 10
+  li a0, @print_char
+  ecall
+  jr ra
+
+
+.globl error
+error:
+  mv a1, a0
+  li a0, @print_string
+  ecall
+  li a1, 10
+  li a0, @print_char
+  ecall
+  li a0, @exit
+  ecall
+abort_17:
+   j abort_17
+
+
+.globl alloc
+alloc:
+  mv a1, a0
+  li a0, @sbrk
+  ecall
+  jr ra
+
+.data
+
+
+.globl msg_nullptr
+msg_nullptr:
+  .asciiz "null pointer"
+  .align 2
+
+
+.globl msg_array_oob
+msg_array_oob:
+  .asciiz "array index out of bounds"
+  .align 2
+

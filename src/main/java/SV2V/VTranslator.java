@@ -1,9 +1,29 @@
+package SV2V;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import IR.token.Identifier;
-import sparrowv.*;
+import sparrowv.Add;
+import sparrowv.Alloc;
+import sparrowv.Call;
+import sparrowv.ErrorMessage;
+import sparrowv.FunctionDecl;
+import sparrowv.Goto;
+import sparrowv.IfGoto;
+import sparrowv.LabelInstr;
+import sparrowv.LessThan;
+import sparrowv.Load;
+import sparrowv.Move_Id_Reg;
+import sparrowv.Move_Reg_FuncName;
+import sparrowv.Move_Reg_Id;
+import sparrowv.Move_Reg_Integer;
+import sparrowv.Move_Reg_Reg;
+import sparrowv.Multiply;
+import sparrowv.Print;
+import sparrowv.Program;
+import sparrowv.Store;
+import sparrowv.Subtract;
 import sparrowv.visitor.DepthFirst;
 
 public class VTranslator extends DepthFirst {

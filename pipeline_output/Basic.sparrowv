@@ -1,0 +1,36 @@
+func main()
+t3 = 4
+t4 = alloc(t3)
+if0 t4 goto nullErr_0
+t5 = 0
+t3 = 4
+s1 = alloc(t3)
+if0 s1 goto nullErr_0
+s2 = @A_run
+[s1 + 0] = s2
+[t4 + 0] = s1
+goto success_1
+nullErr_0:
+error("null pointer")
+success_1:
+if0 t4 goto nullErr_2
+goto success_3
+nullErr_2:
+error("null pointer")
+success_3:
+s3 = [t4 + 0]
+s4 = [s3 + 0]
+a2 = t4
+s5 = call s4()
+print(s5)
+s6 = 0
+v8 = s6
+      return v8
+
+func A_run()
+t3 = 1
+t4 = t3
+v10 = t4
+      return v10
+
+
