@@ -17,6 +17,8 @@ A multi-stage compiler that:
 
 ### Pipeline
 
+![](compiler-pipeline.png)
+
 1. **Parsing and Syntax Analysis** ([MiniJavaParser.java](src/parse/java/minijava/MiniJavaParser.java))
     - Parses the inputted MiniJava program and checks for valid syntax against the MiniJava grammar
     - Generates abstract syntax tree (AST) representation
