@@ -59,8 +59,3 @@ Replace `input.java` with any MiniJava program you want to enter. File extension
 Sample output is provided in [pipeline_output](pipeline_output)
 
 **Note:** _`input.java` must be a valid MiniJava program (syntactically and semantically correct) for pipeline to complete successfully. If it is not, the pipeline will crash._
-
-## Next Steps
-
--   Currently working on graceful error handling in case of invalid program input to the pipeline
--   Bug fixes in progress for object inheritance in Sparrow and Sparrow-V code generation
